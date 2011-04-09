@@ -27,7 +27,7 @@ Syntax:
  Predicate parse(I, Phi) returns Phi from input I.
 */
 
-:- module(parser, [p/2, parse_term/2]).
+:- module(parser, [p/2, pt/2]).
 
 
 %General definition that helps removing whitespace,
@@ -169,15 +169,15 @@ parse_phi(L, def(Name, Args, Phi)) :-
 	parse_phi(L1, pred(Name, Args)),
 	parse_phi(L2, Phi).
 
-% Main predicate
+% Main predicate for parsing of logical formulæ
 p(L, R) :- 	atom_chars(L, Z),
 	        trimblancks(Z, W),
 		parse_phi(W, R).
 
 
-
-
-
-
+% Predicate for for parsing of terms
+pt(L, R) :- atom_chars(L, Z),
+            trimblancks(Z, W),
+	    parse_term(W, R).
 
 
