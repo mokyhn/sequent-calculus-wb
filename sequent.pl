@@ -20,6 +20,60 @@ tp(X) :- print(X), nl.
 
 ppseq(G, D) :- pp(G), print(' |- '), pp(D).
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Substitution
+% subst(E, var(V), T, E') replace V in E with T and return result in E'.
+
+% Substitutions in terms
+subst(const(C), _V,  _T, const(C)).
+subst([], _V, _T, []).
+subst([Te|Ts], V, T, [R|Rs]) :-
+	subst(Te, V, T, R), subst(Ts, V, T, Rs).
+
+subst(var(V),	 var(V),   T, T).
+subst(var(V),	 var(W),   _T, var(V)) :- not(V=W).
+subst(func(Name, Args), var(V), T, func(Name, ArgsN)) :-
+	subst(Args, var(V), T, ArgsN).
+
+%Substitutions in logical formulæ
+subst(bot,        _V, _T, bot).
+subst(not(Phi),    V,  T, not(R)) :- subst(Phi, V, T, R).
+subst(id(I),	  _V, _T, id(I)).
+subst(bimp(A, B),  V,  T, bimp(Ar, Br)) :-
+	subst(A, V, T, Ar),
+	subst(B, V, T, Br).
+subst(imp(A, B),  V,  T, imp(Ar, Br)) :-
+	subst(A, V, T, Ar),
+	subst(B, V, T, Br).
+subst(and(A, B),  V,  T, and(Ar, Br)) :-
+	subst(A, V, T, Ar),
+	subst(B, V, T, Br).
+subst(or(A, B),  V,  T, or(Ar, Br)) :-
+	subst(A, V, T, Ar),
+	subst(B, V, T, Br).
+subst(eq(T1, T2),  V,  T, eq(T1r, T2r)) :-
+	subst(T1, V, T, T1r),
+	subst(T2, V, T, T2r).
+subst(pred(Name, Args), V, T, pred(Name, Argsr)) :-
+	subst(Args, V, T, Argsr).
+
+subst(def(Name, Args, Phi), V, T, def(Name, Argsr, Phir)) :-
+	subst(Args, V, T, Argsr),
+	subst(Phi,  V, T, Phir).
+
+% Substitution of a list of terms for a list of variables.
+subst(Phi, [], [], Phi).
+
+subst(Phi, [V|Vs], [T|Ts], Phires) :-
+	subst(Phi,     V, T,  PhiTmp),
+	subst(PhiTmp, Vs, Ts, Phires).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
 /*************  The sequent calculus, minimal fragment ****************/
 
 
@@ -168,13 +222,10 @@ seq(G, D) :- member(or(A,B), D),
 
 
 
-%hertil
-
-
 /****************************************************
-*            Gamma, -A ~~~~> Delta
-* (Ng3)   ----------------------------
 *	     Gamma ~~~~> Delta, A
+* (Ng3)   ----------------------------
+*            Gamma, -A ~~~~> Delta
 *
 */
 seq(G, D) :- member(not(A), G),
@@ -187,9 +238,9 @@ seq(G, D) :- member(not(A), G),
 
 
 /****************************************************
-*            Gamma ~~~~> Delta, -A
-* (Ng4)   ----------------------------
 *             Gamma, A ~~~~> Delta
+* (Ng4)   ----------------------------
+*            Gamma ~~~~> Delta, -A
 *
 */
 seq(G, D) :- member(not(A), D),
@@ -201,9 +252,9 @@ seq(G, D) :- member(not(A), D),
 
 
 /****************************************************
-*                          Gamma ~~~~> Delta, A <-> B
-* (Bimp1)   -----------------------------------------------------
 *             Gamma, A ~~~~> Delta, B | Gamma, B ~~~~> Delta, A
+* (Bimp1)   -----------------------------------------------------
+*                          Gamma ~~~~> Delta, A <-> B
 *
 */
 seq(G, D) :- member(bimp(A,B), D),
@@ -218,9 +269,9 @@ seq(G, D) :- member(bimp(A,B), D),
 
 
 /****************************************************
- *                      Gamma, A <-> B ~~~~> Delta
- * (Bimp2) ---------------------------------------------------
  *         Gamma, A, B ~~~~> Delta | Gamma  ~~~~> Delta, A, B
+ * (Bimp2) ---------------------------------------------------
+ *                      Gamma, A <-> B ~~~~> Delta
  */
 seq(G, D) :- member(bimp(A,B), G),
 	     subtract(G, [bimp(A,B)], G1),
@@ -236,9 +287,11 @@ seq(G, D) :- member(bimp(A,B), G),
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Reflexivity of =
-seq(_, D) :- not(var(X)), member(eq(X,X), D), print('ReflEq: '), pp(eq(X,X)), nl.
+% seq(_, D) :- not(var(X)), member(eq(X,X), D), print('ReflEq: '),
+% pp(eq(X,X)), nl.
 
 % Transitivity of =
+/*
 seq(G, D) :- member(eq(A,C), D),
 	     seq(G, [eq(A,B)]),
 	     not(B=C),
@@ -246,49 +299,28 @@ seq(G, D) :- member(eq(A,C), D),
 	     seq(G, [eq(B,C)]),
 	     print(eq(B,C)),
 	     print('TransEq: '), pp([eq(A,B), eq(B,C)]), nl.
+*/
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Substitution
-% subst(E, var(V), T, E') replace V in E with T and return result in E'.
-
-% Substitutions in terms
-subst(const(C), _V,  _T, const(C)).
-subst([], _V, _T, []).
-subst([Te|Ts], V, T, [R|Rs]) :-
-	subst(Te, V, T, R), subst(Ts, V, T, Rs).
-
-subst(var(V),	 var(V),   T, T).
-subst(var(V),	 var(W),   _T, var(V)) :- not(V=W).
-subst(func(Name, Args), var(V), T, func(Name, ArgsN)) :-
-	subst(Args, var(V), T, ArgsN).
-
-%Substitutions in logical formulæ
-subst(bot,        _V, _T, bot).
-subst(not(Phi),    V,  T, not(R)) :- subst(Phi, V, T, R).
-subst(id(I),	  _V, _T, id(I)).
-subst(bimp(A, B),  V,  T, bimp(Ar, Br)) :-
-	subst(A, V, T, Ar),
-	subst(B, V, T, Br).
-subst(imp(A, B),  V,  T, imp(Ar, Br)) :-
-	subst(A, V, T, Ar),
-	subst(B, V, T, Br).
-subst(and(A, B),  V,  T, and(Ar, Br)) :-
-	subst(A, V, T, Ar),
-	subst(B, V, T, Br).
-subst(or(A, B),  V,  T, or(Ar, Br)) :-
-	subst(A, V, T, Ar),
-	subst(B, V, T, Br).
-subst(eq(T1, T2),  V,  T, eq(T1r, T2r)) :-
-	subst(T1, V, T, T1r),
-	subst(T2, V, T, T2r).
-subst(pred(Name, Args), V, T, pred(Name, Argsr)) :-
-	subst(Args, V, T, Argsr).
-
-subst(def(Name, Args, Phi), V, T, def(Name, Argsr, Phir)) :-
-	subst(Args, V, T, Argsr),
-	subst(Phi,  V, T, Phir).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/****************************************************
+ *                    Gamma ~~~~> Phi[t1/x1, ..., tn/xn]
+ * (MKDef) ---------------------------------------------------
+ *                     Gamma ~~~~> A(t1, ..., tn), Delta
+ *  when Delta A(x1,...,xn)>Phi in E
+ */
+seq(G, D) :-
+	member(def(N, Vs, Phi),  G),
+	member(pred(N, Ts),	 D),
+	length(Vs, No),
+	length(Ts, No),
+	print('A'),
+	subst(Phi, Vs, Ts, PhiNew),
+	print('B'),
+	subtract(D, [pred(N, Ts)], D1),
+	print('MkuDef: '), ppseq(G, [PhiNew|D1]), nl,
+	%abort,
+	seq(G, [PhiNew|D1]),
+	pp(pred(N, Ts)),
+	print(' becomes: '), pp(PhiNew), nl.
 
 
 
