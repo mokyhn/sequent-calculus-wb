@@ -23,6 +23,7 @@ Syntax:
       |  t=t		      Equality
       | A(t1, ..., tn)        Predicates
       | A(t1, ..., tn) > phi  Defining equality
+	  | ?x.phi                Existential quantifier
 
  Predicate parse(I, Phi) returns Phi from input I.
 */
@@ -163,12 +164,18 @@ parse_phi(L, pred(Name, Args)) :-
 	is_predicate(L, Name, Largs),
 	parse_term_list(Largs, Args).
 
-
+% Defining equation for relation symbols
 parse_phi(L, def(Name, Args, Phi)) :-
 	append(L1, ['>'|L2], L),
 	parse_phi(L1, pred(Name, Args)),
 	parse_phi(L2, Phi).
 
+% Exists quantifier	
+parse_phi(L, exists(var(V), Phi)) :-
+    append(['?'|L1], ['.'|L2], L),
+	parse_term(L1, var(V)),
+	parse_phi(L2,  Phi).
+	
 % Main predicate for parsing of logical formulæ
 p(L, R) :- 	atom_chars(L, Z),
 	        trimblancks(Z, W),
