@@ -39,6 +39,8 @@ pp(func(N, A)) :- print(N), print('('), pp(A), print(')').
 
 pp(def(N, A, Phi)) :- print(N), print('('), pp(A), print(')'),
 	 print(' > '), pp(Phi).
+	 
+pp(exists(V, Phi)) :- print('?'), pp(V), print('.'), pp('('), pp(Phi), pp(')').
 
 
 
