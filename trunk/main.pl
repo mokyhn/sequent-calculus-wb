@@ -43,9 +43,9 @@ propositional_tests(
        '((a|b)&(-b))->a', % Modus Tollens
        '((a|b)&(-b))->a', % Modus Tollendo Ponens
        '(-(a&b)&a)->(-b)', % Modus Ponendo Tollens
-       'x->(y->x)',	                %A1 i hilbert stil logik
-       '(x->(y->z))->((x->y)->(x->z))', %A2, hilbert stil
-       '((x->0)->0)->x'			%A3, hilbert stil
+       'x->(y->x)',	                %A1 i Hilbert stil logik
+       '(x->(y->z))->((x->y)->(x->z))', %A2, Hilbert stil
+       '((x->0)->0)->x'			%A3, Hilbert stil
       ]).
 
 % Seperator line
@@ -78,7 +78,9 @@ test(['N(X)']).
   %Strander på denne BMkuDef: V(X) > (X=v | (X=v(Y) & V(Y))) |- (v(v)=v | (v(v)=v(Y) & V(Y)))
   %pr('V(X)>((X=v)|(?Y.(X=v(Y) & V(Y))))', 'V(v(v))').
 
-
+% Given ?Y.((v(v)=v(Y) & V(Y))))
+% do mgu calculations on the largest fragment containt equalities
+% perform the resulting substitution "on the rest of the logical expression"
 
 
 
