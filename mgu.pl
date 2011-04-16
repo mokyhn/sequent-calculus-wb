@@ -34,6 +34,14 @@ vars([T|Ts], R) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function symbols
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+% Mismatch of constant names
+mmgu_i(E1, E2) :-
+	member(E, E1),
+	E = eq(const(Name1), const(Name2)),
+	Name1 \== Name2,
+	E2 = [error],
+	!.
+
 % Mismatch of function symbol names
 mmgu_i(E1, E2) :-
 	member(E, E1),
@@ -70,14 +78,14 @@ mmgu_i(E1, E2) :- E2 = E1.	  % ...otherwise behave as the identity function
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Identity x = x
+% Identity t = t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
-% If x = x occurs in E1 remove this and return
+% If t = t occurs in E1 remove this and return
 % the rest of equations in E2
 mmgu_ii(E1, E2) :-
 	 member(E, E1),
-	 E = eq(var(X), var(X)), % Condition
+	 E = eq(T, T), % Condition
 	 subtract(E1, [E], E2), !.
 	 
 mmgu_ii(E1, E2) :- E1 = E2. % ... otherwise behave as the identity function
