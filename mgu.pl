@@ -6,7 +6,7 @@
 %%
 
 
-%:- module(mgu, [mmgu/2, mmgu_com/2]).
+:- module(mgu, [mmgu/2, mmgu_com/2]).
 
 :- use_module(subst).
 
@@ -16,20 +16,6 @@
 gen_eqs([], [], []).
 gen_eqs([X|Xs], [Y|Ys], [eq(X,Y)|R]) :-
 	gen_eqs(Xs, Ys, R).
-
-% Return variables of an expression
-vars([], []).
-vars(const(_C), []).
-vars(var(X), [var(X)]).
-vars(func(_Name, Args), V) :- vars(Args, V).
-vars(eq(T1, T2), V) :-
-    vars(T1, V1),
-	vars(T2, V2),
-	union(V1, V2, V).
-vars([T|Ts], R) :-
-	vars(T,  R1),
-	vars(Ts, R2),
-	union(R1, R2, R).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function symbols
