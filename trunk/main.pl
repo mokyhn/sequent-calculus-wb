@@ -76,7 +76,7 @@ test(['N(X)']).
 
 
   %Strander på denne BMkuDef: V(X) > (X=v | (X=v(Y) & V(Y))) |- (v(v)=v | (v(v)=v(Y) & V(Y)))
-  %pr('V(X)>((X=v)|(X=v(Y) & V(Y)))', 'V(v(v))').
+  %pr('V(X)>((X=v)|(?Y.(X=v(Y) & V(Y))))', 'V(v(v))').
 
 
 
