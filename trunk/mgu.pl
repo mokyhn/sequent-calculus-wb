@@ -6,7 +6,7 @@
 %%
 
 
-:- module(mgu, [mmgu/2, mmgu_com/2]).
+:- module(mgu, [mmgu/2, mmgu_com/2, mgu/3]).
 
 :- use_module(subst).
 
@@ -19,7 +19,7 @@ gen_eqs([X|Xs], [Y|Ys], [eq(X,Y)|R]) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function symbols
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Mismatch of constant names
 mmgu_i(E1, E2) :-
 	member(E, E1),
@@ -65,7 +65,7 @@ mmgu_i(E1, E2) :- E2 = E1.	  % ...otherwise behave as the identity function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Identity t = t
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % If t = t occurs in E1 remove this and return
 % the rest of equations in E2
@@ -73,14 +73,14 @@ mmgu_ii(E1, E2) :-
 	 member(E, E1),
 	 E = eq(T, T), % Condition
 	 subtract(E1, [E], E2), !.
-	 
+
 mmgu_ii(E1, E2) :- E1 = E2. % ... otherwise behave as the identity function
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Term t = x
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % If t=x is in E1 and t is not a variable then replace with x=t and
 % return result in E2
@@ -90,22 +90,22 @@ mmgu_iii(E1, E2) :-
 	 not(T=var(_)),
      subtract(E1, [E], Ep),
 	 union(Ep, [eq(var(X), T)], E2), !.
-	 
+
 mmgu_iii(E1, E2) :- E2 = E1.  % ... otherwise behave as the identity function
-	
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Term x = t
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
-	 	 	 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 mmgu_iv(E1, E2) :-
 	member(E, E1),
 	E = eq(var(X), T),
 	vars(T, VarsT),
 	member(var(X), VarsT),
-	E2 = [error], 
+	E2 = [error],
 	!.
-			 
+
 mmgu_iv(E1, E2) :-
 	member(E, E1),
 	E = eq(var(X), T),
@@ -115,41 +115,59 @@ mmgu_iv(E1, E2) :-
 	member(var(X), VEp),
 	subst(Ep, var(X), T, Epp),
 	E2 = [E|Epp], !.
-	
+
 mmgu_iv(E1, E2)	:- E2 = E1.  % ... otherwise behave as the identity function
 
 
 
-	
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Composition of functions mmgu_i, ... mmgu_iv
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
-	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 mmgu_com([error], [error]).
 
 % A composition of the above functions
-mmgu_com(Es, Er) :- 
+mmgu_com(Es, Er) :-
 	mmgu_i(Es, E1),
 	mmgu_ii(E1, E2),
-	mmgu_iii(E2, E3), 
+	mmgu_iii(E2, E3),
 	mmgu_iv(E3, Er).
-	
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fixed point computation
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
-	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 mmgu(R1, R2) :-
     mmgu_com(R1, Rp),
 	R1 = Rp,
 	R2 = Rp.
-	
+
 mmgu(R1, R2) :-
     mmgu_com(R1, Rtmp),
     mmgu(Rtmp, R2).
 
-	
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MGU substitution
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Utility relation, that creates a substitution from a set of
+%equations
+create_subst(Eqs, Dom, Rng) :-
+	Eqs = [],
+	Dom = [],
+	Rng = [].
+
+create_subst([eq(D, R)|Es], [D|Ds], [R|Rs]) :-
+	create_subst(Es, Ds, Rs).
+
+
+mgu(Eqs, Dom, Rng) :-
+	mmgu(Eqs, Es),
+	create_subst(Es, Dom, Rng).
 
 
 

@@ -11,7 +11,7 @@ Todo: Write derivation rule in ascii art in comments...
 */
 
 
-:- module(sequent, [seq/2, prove/2, subst/4]).
+:- module(sequent, [seq/2, prove/2, subst/4, conj/2]).
 
 :- use_module(io).
 :- use_module(subst).
@@ -21,6 +21,24 @@ tp(X) :- print(X), nl.
 ppseq(G, D) :- pp(G), print(' |- '), pp(D).
 
 
+
+seperate([], [], []).
+
+seperate([and(A, B)|L], EqPart, Rest) :-
+	seperate([A, B|L], EqPart, Rest).
+
+seperate([eq(A, B)|L], [eq(A,B)|EqPart], Rest) :-
+	seperate(L, EqPart, Rest).
+
+
+seperate([Obj|L], EqPart, [Obj|Rest]) :-
+	seperate(L, EqPart, Rest).
+
+
+
+conj([A], A).
+conj([A|Rest], and(A,R2)) :-
+	conj(Rest, R2).
 
 
 
@@ -48,7 +66,7 @@ seq(G, D) :- member(A, G),
 */
 seq(G, D) :- member(imp(A, bot), G),
 	     subtract(G, [imp(A,bot)], G1),
-	     union(D, [A], D1),
+	     D1 = [A|D],
 	     seq(G1, D1),
 	     print('Ng1: '), ppseq(G1, D1), nl. %info print
 /****************************************************/
@@ -64,7 +82,7 @@ seq(G, D) :- member(imp(A, bot), G),
 */
 seq(G, D) :- member(imp(A, bot), D),
 	     subtract(D, [imp(A,bot)], D1),
-	     union(G, [A], G1),
+	     G1 = [A|G],
 	     seq(G1, D1),
 	     print('Ng2: '), ppseq(G1,D1), nl. % print info
 /****************************************************/
@@ -79,8 +97,8 @@ seq(G, D) :- member(imp(A, bot), D),
 */
 seq(G, D) :- member(imp(A, B), D),
 	     subtract(D, [imp(A,B)], D1),
-	     union(G, [A], G1),
-	     union(D1, [B], D2),
+	     G1 = [A|G],
+	     D2 = [B|D1],
 	     seq(G1, D2),
 	     print('Imp1: '), ppseq(G1, D2), nl. %print info
 /****************************************************/
@@ -95,8 +113,8 @@ seq(G, D) :- member(imp(A, B), D),
 */
 seq(G, D) :- member(imp(A, B), G),
 	     subtract(G, [imp(A, B)], G1),
-	     union(G1, [B], G2),
-	     union(D, [A], D1),
+	     G2 = [B|G1],
+	     D1 = [A|D],
 	     seq(G2, D),
 	     seq(G1, D1),
 	     print('Imp2: '), ppseq(G2,D), print(' and '), ppseq(G1,D1), nl. %print info
@@ -119,7 +137,7 @@ seq(G, D) :- member(imp(A, B), G),
  */
 seq(G, D) :- member(and(A,B), G),
 	     subtract(G, [and(A,B)], G1),
-	     union(G1, [A,B], GAB),
+	     GAB = [A,B|G1],
 	     seq(GAB, D),
 	     print('And1: '), ppseq(GAB, D), nl.  % Print info
 
@@ -136,8 +154,8 @@ seq(G, D) :- member(and(A,B), G),
  */
 seq(G, D) :- member(and(A,B), D),
 	     subtract(D,  [and(A,B)], D1),
-	     union(D1, [A], DA),
-	     union(D1, [B], DB),
+	     DA = [A|D1],
+	     DB = [B|D1],
 	     seq(G, DA),
 	     seq(G, DB),
 	     print('And2: '), ppseq(G,DA), print(' and '), ppseq(G, DB), nl. %print info
@@ -151,8 +169,8 @@ seq(G, D) :- member(and(A,B), D),
  */
 seq(G, D) :- member(or(A,B), G),
 	     subtract(G, [or(A,B)], G1),
-	     union(G1, [A], GA),
-	     union(G1, [B], GB),
+	     GA = [A|G1],
+	     GB = [B|G1],
 	     seq(GA, D),
 	     seq(GB, D),
 	     print('Or1: '), ppseq(GA,D), print(' and '), ppseq(GB,D), nl. %print info
@@ -166,7 +184,7 @@ seq(G, D) :- member(or(A,B), G),
  */
 seq(G, D) :- member(or(A,B), D),
 	     subtract(D, [or(A,B)], D1),
-	     union(D1, [A,B], D2),
+	     D2 = [A,B|D1],
 	     seq(G, D2),
 	     print('Or2: '), ppseq(G, D2), nl. %Print proofpart
 
@@ -180,7 +198,7 @@ seq(G, D) :- member(or(A,B), D),
 */
 seq(G, D) :- member(not(A), G),
 	     subtract(G, [not(A)], G1),
-	     union(D, [A], D1),
+	     D1 = [A|D],
 	     seq(G1, D1),
 	     print('Ng3: '), ppseq(G1,D1), nl. %Print proofpart
 /****************************************************/
@@ -195,7 +213,7 @@ seq(G, D) :- member(not(A), G),
 */
 seq(G, D) :- member(not(A), D),
 	     subtract(D, [not(A)], D1),
-	     union(G, [A], G1),
+	     G1 = [A|G],
 	     seq(G1, D1),
 	     print('Ng4: '), ppseq(G1,D1), nl. % Print proofpart
 /****************************************************/
@@ -209,10 +227,10 @@ seq(G, D) :- member(not(A), D),
 */
 seq(G, D) :- member(bimp(A,B), D),
 	     subtract(D, [bimp(A,B)], D1),
-	     union(G,  [A], GA),
-	     union(G,  [B], GB),
-	     union(D1, [A], DA),
-	     union(D1, [B], DB),
+	     GA = [A|G],
+	     GB = [B|G],
+             DA = [A|D1],
+	     DB = [B|D1],
 	     seq(GA, DB),
 	     seq(GB, DA),
 	     print('Bimp1: '), ppseq(GA,DB), print(' and '), ppseq(GB,DA), nl. %print info
@@ -225,8 +243,8 @@ seq(G, D) :- member(bimp(A,B), D),
  */
 seq(G, D) :- member(bimp(A,B), G),
 	     subtract(G, [bimp(A,B)], G1),
-	     union(G1, [A, B], GAB),
-	     union(D,  [A, B], DAB),
+	     GAB = [A,B|G1],
+	     DAB = [A,B|D],
 	     seq(GAB, D),
 	     seq(G1,  DAB),
 	     print('Bimp2: '), ppseq(GAB,D), print(' and '), ppseq(G1,DAB), nl. %print info
@@ -262,9 +280,7 @@ seq(G, D) :-
 	member(pred(N, Ts),	 D),
 	length(Vs, No),
 	length(Ts, No),
-	print('A'),
 	subst(Phi, Vs, Ts, PhiNew),
-	print('B'),
 	subtract(D, [pred(N, Ts)], D1),
 	print('MkuDef: '), ppseq(G, [PhiNew|D1]), nl,
 	%abort,
@@ -272,6 +288,17 @@ seq(G, D) :-
 	pp(pred(N, Ts)),
 	print(' becomes: '), pp(PhiNew), nl.
 
+seq(G, D) :-
+	member(exists(var(V), Phi), D),
+	seperate([Phi],  EqPart, Rest),
+	not(EqPart=[]),
+	mgu(EqPart, Dom, Rng),
+	member(var(V), Dom),
+	subst(Rest, Dom, Rng, Rest2),
+	conj(EqPart, Eqs),
+	print('NEW RULE: '), pp(EqPart), print('  ,,, '), pp(Rest2),nl,nl,nl,
+	nl,pp(Eqs),
+	seq(G, [and(Eqs, Rest2)]).
 
 
 prove(G, D) :-  seq(G, D), print('Proof of: '), ppseq(G, D).
