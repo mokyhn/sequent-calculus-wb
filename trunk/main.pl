@@ -52,7 +52,7 @@ propositional_tests(
 sep :- nl, print('-------------------------------------------------------------'), nl.
 
 
-pr(Delta) :- p(Delta, Phi), nl, print('Parsing done...'), nl, prove([], [Phi]).
+pr(Delta) :- p(Delta, Phi), nl, !, print('Parsing done...'), nl, prove([], [Phi]).
 pr(Gamma, Delta) :- p(Gamma, PG), p(Delta, Phi), nl, print('Parsing done...'), nl, prove([PG], [Phi]).
 
 
