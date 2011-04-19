@@ -254,13 +254,13 @@ seq(G, D) :- member(bimp(A,B), G),
 % Axioms/proof system for equality
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Reflexivity of =
-% seq(_, D) :- not(var(X)), member(eq(X,X), D), print('ReflEq: '),
-% pp(eq(X,X)), nl.
+%Reflexivity of =
+seq(_, D) :- member(eq(X,X), D), print('ReflEq: '), pp(eq(X,X)), nl.
 
 % Transitivity of =
 /*
-seq(G, D) :- member(eq(A,C), D),
+seq(G, D) :- 
+         member(eq(A,C), D),
 	     seq(G, [eq(A,B)]),
 	     not(B=C),
 	     print(eq(A, B)),
@@ -282,11 +282,9 @@ seq(G, D) :-
 	length(Ts, No),
 	subst(Phi, Vs, Ts, PhiNew),
 	subtract(D, [pred(N, Ts)], D1),
-	print('MkuDef: '), ppseq(G, [PhiNew|D1]), nl,
-	%abort,
 	seq(G, [PhiNew|D1]),
 	pp(pred(N, Ts)),
-	print(' becomes: '), pp(PhiNew), nl.
+    print('MkuDef: '), ppseq(G, [PhiNew|D1]), nl.
 
 seq(G, D) :-
 	member(exists(var(V), Phi), D),
@@ -295,10 +293,10 @@ seq(G, D) :-
 	mgu(EqPart, Dom, Rng),
 	member(var(V), Dom),
 	subst(Rest, Dom, Rng, Rest2),
-	conj(EqPart, Eqs),
-	print('NEW RULE: '), pp(EqPart), print('  ,,, '), pp(Rest2),nl,nl,nl,
-	nl,pp(Eqs),
-	seq(G, [and(Eqs, Rest2)]).
+	seq(G, Rest2), %conj(EqPart, _Eqs),
+	print('MkuMgu: '), ppseq(G, Rest2), nl
+	.
+
 
 
 prove(G, D) :-  seq(G, D), print('Proof of: '), ppseq(G, D).
