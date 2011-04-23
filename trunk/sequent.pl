@@ -15,6 +15,8 @@ Todo: Write derivation rule in ascii art in comments...
 
 :- use_module(io).
 :- use_module(subst).
+:- use_module(mgu).
+
 
 tp(X) :- print(X), nl.
 

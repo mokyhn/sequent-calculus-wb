@@ -77,6 +77,9 @@ test(['N(X)']).
 
 :- pr('V(X)>((X=v)|(?Y.(X=v(Y) & V(Y))))', 'V(v(v))').
 
+%:- pr('V(X)>((X=v)|(?Y.(X=v(Y) & V(Y))))', '!Z.(V(v(v(Z)))->V(Z))').
+
+
 % Given ?Y.((v(v)=v(Y) & V(Y))))
 % do mgu calculations on the largest fragment containt equalities
 % perform the resulting substitution "on the rest of the logical expression"
