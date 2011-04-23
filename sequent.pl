@@ -44,8 +44,6 @@ conj([A|Rest], and(A,R2)) :-
 
 
 
-/*************  The sequent calculus, minimal fragment ****************/
-
 
 
 /****************************************************
@@ -55,8 +53,65 @@ conj([A|Rest], and(A,R2)) :-
 seq(G, D) :- member(A, G),
 	     member(A, D),
 	     print('ax: '), ppseq(G, D), nl.
-%not(var(G)),
 /****************************************************/
+
+
+
+/****************************************************
+ *            Gamma, A, B ~~~~> Delta
+ * (And1) --------------------------------
+ *          Gamma, A /\ B ~~~~> Delta
+ */
+seq(G, D) :- member(and(A,B), G),
+	     subtract(G, [and(A,B)], G1),
+	     GAB = [A,B|G1],
+	     seq(GAB, D),
+	     print('And1: '), ppseq(GAB, D), nl.  % Print info
+
+
+
+
+/****************************************************
+ *	      Gamma ~~~~> Delta, A, B
+ * (Or2) ---------------------------------
+ *	      Gamma ~~~~> Delta, A \/ B
+ */
+seq(G, D) :- member(or(A,B), D),
+	     subtract(D, [or(A,B)], D1),
+	     D2 = [A,B|D1],
+	     seq(G, D2),
+	     print('Or2: '), ppseq(G, D2), nl. %Print proofpart
+
+
+
+/****************************************************
+*	     Gamma ~~~~> Delta, A
+* (Ng3)   ----------------------------
+*            Gamma, -A ~~~~> Delta
+*
+*/
+seq(G, D) :- member(not(A), G),
+	     subtract(G, [not(A)], G1),
+	     D1 = [A|D],
+	     seq(G1, D1),
+	     print('Ng3: '), ppseq(G1,D1), nl. %Print proofpart
+/****************************************************/
+
+
+
+/****************************************************
+*             Gamma, A ~~~~> Delta
+* (Ng4)   ----------------------------
+*            Gamma ~~~~> Delta, -A
+*
+*/
+seq(G, D) :- member(not(A), D),
+	     subtract(D, [not(A)], D1),
+	     G1 = [A|G],
+	     seq(G1, D1),
+	     print('Ng4: '), ppseq(G1,D1), nl. % Print proofpart
+/****************************************************/
+
 
 
 
@@ -126,24 +181,6 @@ seq(G, D) :- member(imp(A, B), G),
 
 
 
-/*************  The sequent calculus, extended fragment ****************/
-
-
-
-
-
-/****************************************************
- *            Gamma, A, B ~~~~> Delta
- * (And1) --------------------------------
- *          Gamma, A /\ B ~~~~> Delta
- */
-seq(G, D) :- member(and(A,B), G),
-	     subtract(G, [and(A,B)], G1),
-	     GAB = [A,B|G1],
-	     seq(GAB, D),
-	     print('And1: '), ppseq(GAB, D), nl.  % Print info
-
-
 
 
 
@@ -177,48 +214,6 @@ seq(G, D) :- member(or(A,B), G),
 	     seq(GB, D),
 	     print('Or1: '), ppseq(GA,D), print(' and '), ppseq(GB,D), nl. %print info
 
-
-
-/****************************************************
- *	      Gamma ~~~~> Delta, A, B
- * (Or2) ---------------------------------
- *	      Gamma ~~~~> Delta, A \/ B
- */
-seq(G, D) :- member(or(A,B), D),
-	     subtract(D, [or(A,B)], D1),
-	     D2 = [A,B|D1],
-	     seq(G, D2),
-	     print('Or2: '), ppseq(G, D2), nl. %Print proofpart
-
-
-
-/****************************************************
-*	     Gamma ~~~~> Delta, A
-* (Ng3)   ----------------------------
-*            Gamma, -A ~~~~> Delta
-*
-*/
-seq(G, D) :- member(not(A), G),
-	     subtract(G, [not(A)], G1),
-	     D1 = [A|D],
-	     seq(G1, D1),
-	     print('Ng3: '), ppseq(G1,D1), nl. %Print proofpart
-/****************************************************/
-
-
-
-/****************************************************
-*             Gamma, A ~~~~> Delta
-* (Ng4)   ----------------------------
-*            Gamma ~~~~> Delta, -A
-*
-*/
-seq(G, D) :- member(not(A), D),
-	     subtract(D, [not(A)], D1),
-	     G1 = [A|G],
-	     seq(G1, D1),
-	     print('Ng4: '), ppseq(G1,D1), nl. % Print proofpart
-/****************************************************/
 
 
 /****************************************************
@@ -261,7 +256,7 @@ seq(_, D) :- member(eq(X,X), D), print('ReflEq: '), pp(eq(X,X)), nl.
 
 % Transitivity of =
 /*
-seq(G, D) :- 
+seq(G, D) :-
          member(eq(A,C), D),
 	     seq(G, [eq(A,B)]),
 	     not(B=C),
@@ -302,6 +297,11 @@ seq(G, D) :-
 
 
 prove(G, D) :-  seq(G, D), print('Proof of: '), ppseq(G, D).
+
+
+
+
+
 
 
 
