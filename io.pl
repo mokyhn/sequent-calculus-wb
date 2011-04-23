@@ -42,6 +42,7 @@ pp(def(N, A, Phi)) :- print(N), print('('), pp(A), print(')'),
 	 
 pp(exists(V, Phi)) :- print('?'), pp(V), print('.'), pp('('), pp(Phi), pp(')').
 
+pp(all(V, Phi)) :- print('!'), pp(V), print('.'), pp('('), pp(Phi), pp(')').
 
 
 

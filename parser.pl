@@ -24,6 +24,8 @@ Syntax:
       | A(t1, ..., tn)        Predicates
       | A(t1, ..., tn) > phi  Defining equality
 	  | ?x.phi                Existential quantifier
+ 	  | !x.phi                Universal quantifier
+
 
  Predicate parse(I, Phi) returns Phi from input I.
 */
@@ -175,6 +177,13 @@ parse_phi(L, exists(var(V), Phi)) :-
     append(['?'|L1], ['.'|L2], L),
 	parse_term(L1, var(V)),
 	parse_phi(L2,  Phi).
+
+% For all quantifier	
+parse_phi(L, all(var(V), Phi)) :-
+    append(['!'|L1], ['.'|L2], L),
+	parse_term(L1, var(V)),
+	parse_phi(L2,  Phi).
+
 	
 % Main predicate for parsing of logical formulæ
 p(L, R) :- 	atom_chars(L, Z),
