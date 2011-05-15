@@ -32,26 +32,29 @@ public class Failure {
            done            = new ArrayList();
            trustedImortals = new ArrayList();
            N               = n; // Total number of agents
-           waTime          = 2000;
-           scTime          = 0;
+           waTime          = 100;
+           scTime          = 2000;
            globalClock     = new Clock();
       }
 
       public synchronized boolean amIalive(int whoAmI) {
        if (crashed.contains(whoAmI)) return false;
-       if (!trustedImortals.contains(whoAmI) && 
-           prg.get_random_float() < 0.9 &&
-           crashed.size() < N/2) {
-             crashed.add(whoAmI);
-             return false;
-       }
 
-       if (prg.get_random_float() < 0.1 &&
-           globalClock.getTime() > waTime &&
+       if (prg.get_random_float() < 0.5 &&
+           //globalClock.getTime() > waTime &&
            !trustedImortals.contains(whoAmI)) {
            trustedImortals.add(whoAmI);
            return true;
        }
+
+       
+       if (!trustedImortals.contains(whoAmI) && 
+           prg.get_random_float() < 0.5 &&
+           crashed.size() < N/2) {
+             crashed.add(whoAmI);
+             return false;
+       } 
+
 
         return true;
        }

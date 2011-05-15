@@ -1,11 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package chandratoueg;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -25,6 +22,9 @@ public class Agent extends Thread {
   int     ts_p;        // The last round estimate was updated
   int     c_p;         // coordinator id
   int     decide;      // Output: final decision value
+  
+  
+  boolean stop = false;
   
   // Update global and local time
   private void tick() {
@@ -88,7 +88,7 @@ public class Agent extends Thread {
          ArrayList<Message> msgs = null;
          Message m;
 
-         while (!gotAMessage && !failure.fd_DS(p, c_p)) {
+         while (!gotAMessage && !failure.fd_DS(p, c_p) && failure.amIalive(p)) {
              msgs = net.rcv(p, "phase2");
              for (int i=0; i < msgs.size(); i++) {
                m = msgs.get(i);
@@ -140,6 +140,8 @@ public class Agent extends Thread {
          r_p = r_p + 1;
          c_p = (r_p % N);
 
+         tick(); // Time passes
+         
          pr("Phase1 begin");
          Phase1();
          pr("Phase1 end");
@@ -174,7 +176,7 @@ public class Agent extends Thread {
            int i, j;
            
            
-           while (true) {
+           while (failure.amIalive(p) && !stop) {
              msgs = net.rcv(p, "decide");
              if (msgs != null) {
                  for (i = 0; i < msgs.size(); i++) {
@@ -188,7 +190,8 @@ public class Agent extends Thread {
 
                   if (state_p.equals("undecided")) {
                    state_p = "decided";
-                   decide  = m.payload.estimate;              
+                   decide  = m.payload.estimate;
+                   failure.IamDone(p);
                   }   
                }
              }                
@@ -211,6 +214,10 @@ public class Agent extends Thread {
     
     ct.start();
     rb.start();
+
+        try {
+          ct.join();
+        } catch (InterruptedException ex) {System.out.println("Exception");}
     }
 
   
