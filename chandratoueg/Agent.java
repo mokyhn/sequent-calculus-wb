@@ -5,6 +5,8 @@
 
 package chandratoueg;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author mku
@@ -12,7 +14,6 @@ package chandratoueg;
 public class Agent extends Thread {
   Network net;
   Failure failure;
-  Clock   globalClock;
   Clock   localClock;
 
   // Chandra and Toueg variables
@@ -26,15 +27,14 @@ public class Agent extends Thread {
   
   // Update global and local time
   private void tick() {
-     globalClock.tick();
+     failure.globalClock.tick();
      localClock.tick();
   }
 
-  public Agent(int i, Network net, Failure f, Clock c, int N) {
+  public Agent(int i, Network net, Failure f, int N) {
       this.p           = i;
       this.net         = net;
       this.failure     = f;
-      this.globalClock = c;
       this.localClock  = new Clock();
       this.N           = N;
 
@@ -46,33 +46,89 @@ public class Agent extends Thread {
   }
  
    private class ChandraToueg extends Thread {
-       int kl1;
   
      public void Phase1() {
        net.snd(new Message(p, c_p, "phase1", new Payload(r_p,  estimate_p, ts_p)));
      }      
  
      public void Phase2() {
+         boolean gotMessages = false;
+         ArrayList<Message> msgs = null;
+         Message            m;
+         int t           = Integer.MIN_VALUE;
+         int i;
+         
+         if (p == c_p) {
+             while (!gotMessages && failure.amIalive(p)) {
+               msgs = net.rcv(p, "phase1");
+               if (msgs.size() >= (N+1)/2) gotMessages = true;
+             }
+             
+             // Find best estimate
+             for (i=0; i < msgs.size(); i++) {
+                  m = msgs.get(i);
+                  if (m.payload.ts > t) {
+                      estimate_p = m.payload.estimate;
+                      t          = m.payload.ts;
+                  }
+             }
+             
+             //TODO: Code that removes messages from the net here.
+             
+             // Send it to all
+             for (i=0; i < N; i++) {
+               net.snd(new Message(p, i, "phase2", new Payload(r_p, estimate_p, -1)));
+             }
+         }
      }
      
-     public void Phase3() {
+     public void Phase3() {  
+         boolean gotAMessage = false;
+         ArrayList<Message> msgs = null;
+         Message m;
+
+         while (!gotAMessage && !failure.fd_DS(p, c_p)) {
+             msgs = net.rcv(p, "phase2");
+             for (int i=0; i < msgs.size(); i++) {
+               m = msgs.get(i);
+               if (m.source == c_p) {
+                 gotAMessage = true;
+                 estimate_p  = m.payload.estimate;
+                 ts_p        = r_p;
+                 net.snd(new Message(p, c_p, "ack", null));
+                 break;
+               }               
+             }
+         }
+         
+         if (!gotAMessage) net.snd(new Message(p, c_p, "nack", null));
      }
      
      public void Phase4() {
      }
      
+     public void pr(String text) {
+      System.out.println("Agent " + p + " says " + text);
+     }
+     
      public void chandraToueg() {
        
 
-        while (state_p.equals("undecided")) {
+        while (state_p.equals("undecided") && failure.amIalive(p)) {
          r_p = r_p + 1;
          c_p = (r_p % N);
 
-
-         // Phase 2
-         if (p == c_p) {
-         }
-
+         pr("Phase1 begin");
+         Phase1();
+         pr("Phase1 end");
+         
+         pr("Phase2 begin");
+         Phase2();
+         pr("Phase2 end");
+    
+         pr("Phase3 begin");
+         Phase2();
+         pr("Phase3 end");
       }
      }
    
@@ -84,10 +140,7 @@ public class Agent extends Thread {
 
   private class RBlistener extends Thread {
      public void listen() {
-      int  kl2;
-
-      for (kl2 = 0; kl2 < 10; kl2++)
-          System.out.println(p + " RBListener");
+           
      }
 
      @Override
