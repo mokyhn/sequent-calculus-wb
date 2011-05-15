@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class Network {
    int N;
-   ArrayList<Message> net;
+   private ArrayList<Message> net;
    Failure            failure;
 
    public Network (int N) {
@@ -23,7 +23,7 @@ public class Network {
        net.add(m);
    }
 
-   public synchronized ArrayList<Message> rcv(int who, String msgType) {
+   public synchronized ArrayList<Message> rcv(int dest, String msgType) {
      Message m;
      ArrayList<Message> res = new ArrayList();
      int i          = 0;
@@ -32,7 +32,7 @@ public class Network {
 
      for (i = 0; i < net.size(); i++) {
        m = net.get(i);
-       if(m.destination == who      &&
+       if(m.destination == dest     &&
           m.msgType.equals(msgType) &&
           !failure.fd_P(m.source));
        {  // Add quasi reliable communication here.

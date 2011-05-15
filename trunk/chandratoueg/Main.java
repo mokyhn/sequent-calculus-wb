@@ -24,10 +24,9 @@ public class Main {
 
        System.out.println();
 
-       int N = 50;
+       int N = 2;
        Network net = new Network(N);
        Failure f   = new Failure(N);
-       Clock c     = new Clock();
 
        // Agent a1 amd a2 are on the same net
        Agent agents[] = new Agent[N];
@@ -36,13 +35,11 @@ public class Main {
 
        for (j = 0; j < N; j++)
        {
-         agents[j] = new Agent(j, net, f, c, N);
+         agents[j] = new Agent(j, net, f, N);
          agents[j].start();
        }
 
-         for (j = 0; j < N; j++)
-       { System.out.println(" " + agents[j].p + " " + agents[j].isAlive());
-       }
+       
        
        for (j = 0; j < N; j++)
            agents[j].join();
@@ -57,6 +54,5 @@ public class Main {
        System.out.println();
        System.out.println(f.toString());
 
-       System.out.println(c.getTime());
     }
 }

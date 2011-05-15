@@ -21,6 +21,8 @@ public class Failure {
      private ArrayList          trustedImortals;
      private int                N;
 
+     Clock   globalClock;
+
      private long waTime;       // Weak accuracy time
      private long scTime;       // Strong completeness time
 
@@ -32,9 +34,10 @@ public class Failure {
            N               = n; // Total number of agents
            waTime          = 2000;
            scTime          = 0;
+           globalClock     = new Clock();
       }
 
-      public synchronized boolean amIalive(int whoAmI, int time) {
+      public synchronized boolean amIalive(int whoAmI) {
        if (crashed.contains(whoAmI)) return false;
        if (!trustedImortals.contains(whoAmI) && 
            prg.get_random_float() < 0.9 &&
@@ -44,7 +47,7 @@ public class Failure {
        }
 
        if (prg.get_random_float() < 0.1 &&
-           time > waTime &&
+           globalClock.getTime() > waTime &&
            !trustedImortals.contains(whoAmI)) {
            trustedImortals.add(whoAmI);
            return true;
@@ -59,7 +62,7 @@ public class Failure {
       }
 
       // Agent who
-      public boolean fd_DS(int whoAmI, int whoToSuspect, int time) {
+      public boolean fd_DS(int whoAmI, int whoToSuspect) {
           // Do not suspect yourself
           if (whoAmI == whoToSuspect) return false;
 
@@ -67,7 +70,7 @@ public class Failure {
           if (trustedImortals.contains(whoToSuspect)) return false;
 
           // Strong completeness property
-          if (time >= scTime && crashed.contains(whoToSuspect)) return true;
+          if (globalClock.getTime() >= scTime && crashed.contains(whoToSuspect)) return true;
 
           // Non-deterministic behavior elsewise...
           return prg.get_random_bit();
