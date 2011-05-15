@@ -25,9 +25,9 @@ public class Main {
        System.out.println();
 
        int N = 50;
-       Network net = new Network();
+       Network net = new Network(N);
        Failure f   = new Failure(N);
-       Clock c    = new Clock();
+       Clock c     = new Clock();
 
        // Agent a1 amd a2 are on the same net
        Agent agents[] = new Agent[N];

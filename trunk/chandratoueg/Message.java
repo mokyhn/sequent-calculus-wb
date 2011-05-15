@@ -12,26 +12,21 @@ package chandratoueg;
 public class Message {
     int source;
     int destination;
-    int round;
     String msgType;
-    int estimate;
-    int ts;
+    Payload payload;
 
 
-    public Message(int source, int destination, String mt, int r, int e, int ts){
+    public Message(int source, int destination, String mt, Payload payload){
         this.source      = source;
         this.destination = destination;
-        round    = r;
-        msgType  = mt;
-        estimate = e;
-        this.ts  = ts;
+        this.msgType     = mt;       
+        this.payload     = payload;
     }
 
     @Override
     public String toString() {
       return "Message of type " + msgType + 
              " from " + source +
-             " to " + destination +
-             " in round " + round; // TODO: More here
+             " to " + destination;
     }
 }
