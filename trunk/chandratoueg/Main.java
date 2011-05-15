@@ -24,7 +24,7 @@ public class Main {
 
        System.out.println();
 
-       int N = 4;
+       int N = 20;
        Network net = new Network(N);
        Failure f   = new Failure(N);
 
@@ -44,12 +44,19 @@ public class Main {
        for (j = 0; j < N; j++)
            agents[j].join();
 
+       System.out.println("----------------------------");
+       System.out.println("\n");
        
        for (j = 0; j < N; j++) {
-        System.out.println("Agent " + j + " decided " + agents[j].decide);
+           if (f.amIdone(j))
+            System.out.println("Agent " + j + " decided " + agents[j].decide);
        }
        
-        
-           
+       for (j = 0; j < N; j++) {
+         agents[j].stop = true;
+       }
+       
+       System.out.println(f.toString());
+       
     }
 }
