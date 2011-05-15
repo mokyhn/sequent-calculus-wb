@@ -77,7 +77,7 @@ public class Agent extends Thread {
          c = (r % N) + 1;
 
          // Phase 1
-         net.snd(new Message(p, c, "phase1", r,  estimate, ts));
+         net.snd(new Message(p, c, "phase1", new Payload(r,  estimate, ts)));
 
 
          // Phase 2

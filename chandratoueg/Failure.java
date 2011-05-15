@@ -59,7 +59,7 @@ public class Failure {
       }
 
       // Agent who
-      public boolean H(int whoAmI, int whoToSuspect, int time) {
+      public boolean fd_DS(int whoAmI, int whoToSuspect, int time) {
           // Do not suspect yourself
           if (whoAmI == whoToSuspect) return false;
 
@@ -73,6 +73,11 @@ public class Failure {
           return prg.get_random_bit();
       }
 
+      public synchronized boolean fd_P(int p) {
+       return crashed.contains(p);
+      }
+      
+      
     @Override
       public String toString() {
         
