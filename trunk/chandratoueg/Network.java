@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package chandratoueg;
 
 import java.util.ArrayList;
@@ -37,9 +32,10 @@ public class Network {
 
      for (i = 0; i < net.size(); i++) {
        m = net.get(i);
-       if (m.destination == who &&
-          (m.msgType.equals(msgType))
-           ) {  // Add quasi reliable communication here.
+       if(m.destination == who      &&
+          m.msgType.equals(msgType) &&
+          !failure.fd_P(m.source));
+       {  // Add quasi reliable communication here.
             res.add(m);
        }
      }
