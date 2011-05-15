@@ -74,7 +74,7 @@ public class Agent extends Thread {
                   }
              }
              
-             //TODO: Code that removes messages from the net here.
+            net.delete(msgs);
              
              // Send it to all
              for (i=0; i < N; i++) {
@@ -97,6 +97,7 @@ public class Agent extends Thread {
                  estimate_p  = m.payload.estimate;
                  ts_p        = r_p;
                  net.snd(new Message(p, c_p, "ack", null));
+                 net.delete(m);
                  break;
                }               
              }
@@ -194,7 +195,8 @@ public class Agent extends Thread {
                    failure.IamDone(p);
                   }   
                }
-             }                
+             }
+             //net.delete(msgs); // Done with these packages
            }
            
            

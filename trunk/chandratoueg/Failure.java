@@ -41,7 +41,7 @@ public class Failure {
        if (crashed.contains(whoAmI)) return false;
 
        if (prg.get_random_float() < 0.5 &&
-           //globalClock.getTime() > waTime &&
+           globalClock.getTime() > waTime &&
            !trustedImortals.contains(whoAmI)) {
            trustedImortals.add(whoAmI);
            return true;
