@@ -18,11 +18,12 @@ public class Agent extends Thread {
   // Chandra and Toueg variables
   int     p;        // Id of this agent
   int     N;        // Total number of agents
-  int    estimate;  // p's current estimate
-  String state;     // State variable
-  int    r;         // Current round number
-  int    ts;        // The last round estimate was updated
-
+  int     estimate_p;  // p's current estimate
+  String  state_p;     // State variable
+  int     r_p;         // Current round number
+  int     ts_p;        // The last round estimate was updated
+  int     c_p;         // coordinator id
+  
   // Update global and local time
   private void tick() {
      globalClock.tick();
@@ -38,55 +39,48 @@ public class Agent extends Thread {
       this.N           = N;
 
       // Initialization of algorithm variables
-      estimate      = p;      // The suggested value is the id of the process
-      state         = "undecided"; //
-      r             = 0;           // We start in round 0
-      ts            = 0;           // The estimate was last updated in round 0
+      estimate_p      = p;      // The suggested value is the id of the process
+      state_p         = "undecided"; //
+      r_p             = 0;           // We start in round 0
+      ts_p            = 0;           // The estimate was last updated in round 0
   }
  
-  private class Algorithm extends Thread {
-    public void algo() {
-      for (int j = 0; j < 200; j++) {
-          tick();
-          if  (failure.amIalive(p, globalClock.getTime())) {
-           System.out.println("Hello from a thread " + p);
-           
-         }
-         else {
-             System.out.println("Thread " + p + " crashed");
-             break;
-         }
-         
-        }
-        
-     failure.Isucceded(p);
-    }
-    @Override
-    public void run() { algo();  }
-  }
-
-
-  private class ChandraToueg extends Thread {
+   private class ChandraToueg extends Thread {
        int kl1;
   
-      public void ChandraToueg() {
-        int     c; // coordinator id
+     public void Phase1() {
+       net.snd(new Message(p, c_p, "phase1", new Payload(r_p,  estimate_p, ts_p)));
+     }      
+ 
+     public void Phase2() {
+     }
+     
+     public void Phase3() {
+     }
+     
+     public void Phase4() {
+     }
+     
+     public void chandraToueg() {
+       
 
-        while (state.equals("undecided")) {
-         r = r + 1;
-         c = (r % N) + 1;
-
-         // Phase 1
-         net.snd(new Message(p, c, "phase1", new Payload(r,  estimate, ts)));
+        while (state_p.equals("undecided")) {
+         r_p = r_p + 1;
+         c_p = (r_p % N);
 
 
          // Phase 2
-         if (p == c) {
+         if (p == c_p) {
          }
 
       }
      }
-    }
+   
+   @Override
+    public void run() { chandraToueg();  }
+  
+  
+  }
 
   private class RBlistener extends Thread {
      public void listen() {
@@ -104,10 +98,10 @@ public class Agent extends Thread {
 
     @Override
   public void run() {
-    Algorithm a = new Algorithm();
-    RBlistener rb = new RBlistener();
+    ChandraToueg ct = new ChandraToueg();
+    RBlistener rb   = new RBlistener();
     
-    a.start();
+    ct.start();
     rb.start();
     }
 
