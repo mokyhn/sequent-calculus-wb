@@ -44,6 +44,19 @@ public class Network {
    }
 
 
+   public synchronized void delete(Message m) {
+      if (net.contains(m))
+          net.remove(m);
+   }
+   
+   public synchronized void delete(ArrayList<Message> msgs) {
+    Message m;
+
+    for (int i = 0; i < msgs.size(); i++) {
+     m = msgs.get(i);
+     if (net.contains(m)) net.remove(m);    
+    }
+   }
 
    @Override
    public String toString () {
