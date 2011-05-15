@@ -24,7 +24,7 @@ public class Main {
 
        System.out.println();
 
-       int N = 2;
+       int N = 4;
        Network net = new Network(N);
        Failure f   = new Failure(N);
 
@@ -43,16 +43,13 @@ public class Main {
        
        for (j = 0; j < N; j++)
            agents[j].join();
+
        
-       System.out.println("Hej hej");
-
-       for (j = 0; j < N; j++)
-       { System.out.println(" " + agents[j].p + " " + agents[j].isAlive());
+       for (j = 0; j < N; j++) {
+        System.out.println("Agent " + j + " decided " + agents[j].decide);
        }
-
-       System.out.println();
-       System.out.println();
-       System.out.println(f.toString());
-
+       
+        
+           
     }
 }

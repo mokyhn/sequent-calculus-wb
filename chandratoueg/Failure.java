@@ -56,11 +56,15 @@ public class Failure {
         return true;
        }
 
-      public synchronized void Isucceded(int whoAmI) {
+      public synchronized void IamDone(int whoAmI) {
           if (!done.contains(whoAmI) &&
               !crashed.contains(whoAmI)) done.add(whoAmI);
       }
 
+      public synchronized boolean amIdone(int whoAmI) {
+       return done.contains(whoAmI);
+      }
+      
       // Agent who
       public boolean fd_DS(int whoAmI, int whoToSuspect) {
           // Do not suspect yourself

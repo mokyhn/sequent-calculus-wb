@@ -24,6 +24,7 @@ public class Agent extends Thread {
   int     r_p;         // Current round number
   int     ts_p;        // The last round estimate was updated
   int     c_p;         // coordinator id
+  int     decide;      // Output: final decision value
   
   // Update global and local time
   private void tick() {
@@ -105,6 +106,27 @@ public class Agent extends Thread {
      }
      
      public void Phase4() {
+         ArrayList<Message> msgs = null;
+
+         if (p == c_p) {
+          
+          // Wait for replies   
+          while (net.rcv(p, "ack").size() + net.rcv(p, "nack").size() < (N+1)/2 ) 
+          { // Busy wait
+          }
+         
+          if (net.rcv(p, "ack").size() >= (N+1)/2) {
+           R_broadcast(p, r_p, estimate_p);
+          }
+         }
+          
+         
+     }
+     
+     public void R_broadcast(int p, int r, int estimate) {
+         for (int i = 0; i < N; i++) {
+            net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
+         }
      }
      
      public void pr(String text) {
@@ -129,6 +151,11 @@ public class Agent extends Thread {
          pr("Phase3 begin");
          Phase2();
          pr("Phase3 end");
+         
+         pr("Phase4 begin");
+         Phase4();
+         pr("Phase4 end");
+         
       }
      }
    
@@ -139,12 +166,40 @@ public class Agent extends Thread {
   }
 
   private class RBlistener extends Thread {
-     public void listen() {
+      ArrayList<Message> done = new ArrayList();
+      
+      public void R_deliver() {
+           ArrayList<Message> msgs;
+           Message m;
+           int i, j;
+           
+           
+           while (true) {
+             msgs = net.rcv(p, "decide");
+             if (msgs != null) {
+                 for (i = 0; i < msgs.size(); i++) {
+                  m = msgs.get(i);
+                  if (!done.contains(m)) {
+                      for (j = 0; j < N; j++) {
+                        net.snd(new Message(m.source, j, "decide", m.payload));
+                      }
+                      done.add(m);
+                  }
+
+                  if (state_p.equals("undecided")) {
+                   state_p = "decided";
+                   decide  = m.payload.estimate;              
+                  }   
+               }
+             }                
+           }
+           
+           
            
      }
 
      @Override
-     public void run() { listen();  }
+     public void run() {  R_deliver();  }
   }
 
 
