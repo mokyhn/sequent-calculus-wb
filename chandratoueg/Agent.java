@@ -65,6 +65,8 @@ public class Agent extends Thread {
                if (msgs.size() >= (N+1)/2) gotMessages = true;
              }
              
+             if (msgs == null) return;
+             
              // Find best estimate
              for (i=0; i < msgs.size(); i++) {
                   m = msgs.get(i);
@@ -196,7 +198,7 @@ public class Agent extends Thread {
                   }   
                }
              }
-             //net.delete(msgs); // Done with these packages
+             net.delete(msgs); // Done with these packages
            }
            
            

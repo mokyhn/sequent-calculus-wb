@@ -1,6 +1,8 @@
 package chandratoueg;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
@@ -9,29 +11,32 @@ import java.util.ArrayList;
 
 public class Network {
    int N;
-   private ArrayList<Message> net;
+   private ConcurrentLinkedQueue<Message> net;
    Failure            failure;
 
    public Network (int N) {
      this.N = N;
-     this.net     = new ArrayList();
+     this.net     = new ConcurrentLinkedQueue();
      this.failure = new Failure(N);
    }
 
 
-   public synchronized void snd(Message m){
+   public void snd(Message m){
        net.add(m);
    }
 
-   public synchronized ArrayList<Message> rcv(int dest, String msgType) {
+   public ArrayList<Message> rcv(int dest, String msgType) {
      Message m;
      ArrayList<Message> res = new ArrayList();
+     Iterator<Message> it;
      int i          = 0;
 
      if (net.isEmpty()) return null;
 
-     for (i = 0; i < net.size(); i++) {
-       m = net.get(i);
+     it = net.iterator();
+     
+     while(it.hasNext()) {
+       m = it.next();
        if(m.destination == dest     &&
           m.msgType.equals(msgType) &&
           !failure.fd_P(m.source));
@@ -44,17 +49,18 @@ public class Network {
    }
 
 
-   public synchronized void delete(Message m) {
-      if (net.contains(m))
+   public void delete(Message m) {      
           net.remove(m);
    }
    
-   public synchronized void delete(ArrayList<Message> msgs) {
+   public void delete(ArrayList<Message> msgs) {
     Message m;
 
+    if (msgs == null) return;
+    
     for (int i = 0; i < msgs.size(); i++) {
      m = msgs.get(i);
-     if (net.contains(m)) net.remove(m);    
+     net.remove(m);    
     }
    }
 
