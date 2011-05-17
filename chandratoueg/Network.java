@@ -27,11 +27,11 @@ public class Network {
 
    public ArrayList<Message> rcv(int dest, String msgType) {
      Message m;
-     ArrayList<Message> res = new ArrayList();
+     ArrayList<Message> res = new ArrayList();   
      Iterator<Message> it;
      int i          = 0;
 
-     if (net.isEmpty()) return null;
+     if (net.isEmpty()) return res;
 
      it = net.iterator();
      
@@ -55,8 +55,6 @@ public class Network {
    
    public void delete(ArrayList<Message> msgs) {
     Message m;
-
-    if (msgs == null) return;
     
     for (int i = 0; i < msgs.size(); i++) {
      m = msgs.get(i);

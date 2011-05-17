@@ -1,8 +1,6 @@
 package chandratoueg;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -54,7 +52,7 @@ public class Agent extends Thread {
  
      public void Phase2() {
          boolean gotMessages = false;
-         ArrayList<Message> msgs = null;
+         ArrayList<Message> msgs = new ArrayList();
          Message            m;
          int t           = Integer.MIN_VALUE;
          int i;
@@ -65,7 +63,6 @@ public class Agent extends Thread {
                if (msgs.size() >= (N+1)/2) gotMessages = true;
              }
              
-             if (msgs == null) return;
              
              // Find best estimate
              for (i=0; i < msgs.size(); i++) {
@@ -87,7 +84,7 @@ public class Agent extends Thread {
      
      public void Phase3() {  
          boolean gotAMessage = false;
-         ArrayList<Message> msgs = null;
+         ArrayList<Message> msgs;
          Message m;
 
          while (!gotAMessage && !failure.fd_DS(p, c_p) && failure.amIalive(p)) {
@@ -109,8 +106,6 @@ public class Agent extends Thread {
      }
      
      public void Phase4() {
-         ArrayList<Message> msgs = null;
-
          if (p == c_p) {
           
           // Wait for replies   
@@ -139,7 +134,7 @@ public class Agent extends Thread {
      public void chandraToueg() {
        
 
-        while (state_p.equals("undecided") && failure.amIalive(p)) {
+        while (state_p.equals("undecided") && failure.amIalive(p) && !stop) {
          r_p = r_p + 1;
          c_p = (r_p % N);
 
@@ -181,7 +176,6 @@ public class Agent extends Thread {
            
            while (failure.amIalive(p) && !stop) {
              msgs = net.rcv(p, "decide");
-             if (msgs != null) {
                  for (i = 0; i < msgs.size(); i++) {
                   m = msgs.get(i);
                   if (!done.contains(m)) {
@@ -197,7 +191,6 @@ public class Agent extends Thread {
                    failure.IamDone(p);
                   }   
                }
-             }
              net.delete(msgs); // Done with these packages
            }
            
