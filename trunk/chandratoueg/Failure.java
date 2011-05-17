@@ -5,9 +5,8 @@
 
 package chandratoueg;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Random;
 
 /**
  *
@@ -15,10 +14,10 @@ import java.util.Comparator;
  */
 public class Failure {
      private Random             prg;
-     private ArrayList          crashed; // List of agent id's that have failed
-     private ArrayList          done;   // List of agent id's that have
+     private ConcurrentLinkedQueue  crashed; // List of agent id's that have failed
+     private ConcurrentLinkedQueue  done;   // List of agent id's that have
                                         // completed a trace
-     private ArrayList          trustedImortals;
+     private ConcurrentLinkedQueue  trustedImortals;
      private int                N;
 
      Clock   globalClock;
@@ -28,19 +27,19 @@ public class Failure {
 
       public Failure(int n) {
            prg             = new Random();
-           crashed         = new ArrayList();
-           done            = new ArrayList();
-           trustedImortals = new ArrayList();
+           crashed         = new ConcurrentLinkedQueue();
+           done            = new ConcurrentLinkedQueue();
+           trustedImortals = new ConcurrentLinkedQueue();
            N               = n; // Total number of agents
            waTime          = 100;
            scTime          = 2000;
            globalClock     = new Clock();
       }
 
-      public synchronized boolean amIalive(int whoAmI) {
+      public boolean amIalive(int whoAmI) {
        if (crashed.contains(whoAmI)) return false;
 
-       if (prg.get_random_float() < 0.5 &&
+       if (prg.nextBoolean() &&
            globalClock.getTime() > waTime &&
            !trustedImortals.contains(whoAmI)) {
            trustedImortals.add(whoAmI);
@@ -49,7 +48,7 @@ public class Failure {
 
        
        if (!trustedImortals.contains(whoAmI) && 
-           prg.get_random_float() < 0.5 &&
+           prg.nextBoolean() &&
            crashed.size() < N/2) {
              crashed.add(whoAmI);
              return false;
@@ -59,12 +58,12 @@ public class Failure {
         return true;
        }
 
-      public synchronized void IamDone(int whoAmI) {
+      public void IamDone(int whoAmI) {
           if (!done.contains(whoAmI) &&
               !crashed.contains(whoAmI)) done.add(whoAmI);
       }
 
-      public synchronized boolean amIdone(int whoAmI) {
+      public boolean amIdone(int whoAmI) {
        return done.contains(whoAmI);
       }
       
@@ -80,10 +79,10 @@ public class Failure {
           if (globalClock.getTime() >= scTime && crashed.contains(whoToSuspect)) return true;
 
           // Non-deterministic behavior elsewise...
-          return prg.get_random_bit();
+          return prg.nextBoolean();
       }
 
-      public synchronized boolean fd_P(int p) {
+      public  boolean fd_P(int p) {
        return crashed.contains(p);
       }
       
@@ -105,10 +104,10 @@ public class Failure {
          
         }
         */
-    Comparator comparator = Collections.reverseOrder();
-         Collections.sort(crashed,comparator);
-         Collections.sort(trustedImortals,comparator);
-         Collections.sort(done,comparator);
+    /*Comparator comparator = Collections.reverseOrder();
+         Collections.sort(crashed.,comparator);
+         Collections.sort(trustedImortals.toArray(),comparator);
+         Collections.sort(done,comparator);*/
         return "Crashed: " + crashed.toString() + "\n" +
                "TI's:    " + trustedImortals.toString() + "\n" +
                "Done:    " + done.toString();        

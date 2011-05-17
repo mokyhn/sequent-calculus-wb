@@ -24,7 +24,7 @@ public class Main {
 
        System.out.println();
 
-       int N = 25;
+       int N = 5;
        Network net = new Network(N);
        Failure f   = new Failure(N);
 
