@@ -24,9 +24,9 @@ public class Main {
 
        System.out.println();
 
-       int N = 5;
+       int N = 15;
        Network net = new Network(N);
-       Failure f   = new Failure(N);
+       Failure f   = new Failure(N, net);
 
        // Agent a1 amd a2 are on the same net
        Agent agents[] = new Agent[N];
@@ -57,6 +57,8 @@ public class Main {
        }
        
        System.out.println(f.toString());
+       
+       
        
     }
 }

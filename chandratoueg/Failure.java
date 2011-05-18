@@ -13,6 +13,7 @@ import java.util.Random;
  * @author mku
  */
 public class Failure {
+    private  Network net;
      private Random             prg;
      private ConcurrentLinkedQueue  crashed; // List of agent id's that have failed
      private ConcurrentLinkedQueue  done;   // List of agent id's that have
@@ -25,7 +26,7 @@ public class Failure {
      private long waTime;       // Weak accuracy time
      private long scTime;       // Strong completeness time
 
-      public Failure(int n) {
+      public Failure(int n, Network net) {
            prg             = new Random();
            crashed         = new ConcurrentLinkedQueue();
            done            = new ConcurrentLinkedQueue();
@@ -34,6 +35,7 @@ public class Failure {
            waTime          = 100;
            scTime          = 2000;
            globalClock     = new Clock();
+           this.net        = net;
       }
 
       public boolean amIalive(int whoAmI) {
@@ -51,6 +53,7 @@ public class Failure {
            prg.nextBoolean() &&
            crashed.size() < N/2) {
              crashed.add(whoAmI);
+             net.delete(whoAmI);  // Remove net messages
              return false;
        } 
 
