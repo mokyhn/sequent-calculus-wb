@@ -17,7 +17,7 @@ public class Network {
    public Network (int N) {
      this.N = N;
      this.net     = new ConcurrentLinkedQueue();
-     this.failure = new Failure(N);
+     this.failure = new Failure(N, this);
    }
 
 
@@ -62,6 +62,21 @@ public class Network {
     }
    }
 
+   
+   public void delete(int source) {
+    ArrayList<Message> messages = new ArrayList();
+    Message m;
+    
+    Iterator<Message> it = net.iterator();
+   
+    while (it.hasNext()) {
+     m = it.next();
+     if (m.source == source) messages.add(m);
+    }
+    
+    delete(messages);
+   }
+   
    @Override
    public String toString () {
        return "Size of net " + net.size();

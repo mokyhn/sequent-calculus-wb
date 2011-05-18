@@ -45,9 +45,16 @@ public class Agent extends Thread {
   }
  
    private class ChandraToueg extends Thread {
-  
+     public boolean go() {
+      tick();
+      return failure.amIalive(p);
+     }
+     
+       
      public void Phase1() {
-       net.snd(new Message(p, c_p, "phase1", new Payload(r_p,  estimate_p, ts_p)));
+       pr("Phase1 begin");
+       if (go()) net.snd(new Message(p, c_p, "phase1", new Payload(r_p,  estimate_p, ts_p)));
+       pr("Phase1 end");      
      }      
  
      public void Phase2() {
@@ -57,15 +64,17 @@ public class Agent extends Thread {
          int t           = Integer.MIN_VALUE;
          int i;
          
-         if (p == c_p) {
-             while (!gotMessages && failure.amIalive(p)) {
+         pr("Phase2 begin");
+
+         
+         if (p == c_p && go()) {
+             while (!gotMessages && go()) {
                msgs = net.rcv(p, "phase1");
                if (msgs.size() >= (N+1)/2) gotMessages = true;
              }
              
-             
              // Find best estimate
-             for (i=0; i < msgs.size(); i++) {
+             for (i=0; i < msgs.size() && go(); i++) {
                   m = msgs.get(i);
                   if (m.payload.ts > t) {
                       estimate_p = m.payload.estimate;
@@ -73,23 +82,28 @@ public class Agent extends Thread {
                   }
              }
              
-            net.delete(msgs);
+            if (go()) net.delete(msgs);
              
              // Send it to all
-             for (i=0; i < N; i++) {
+             for (i=0; i < N && go(); i++) {
                net.snd(new Message(p, i, "phase2", new Payload(r_p, estimate_p, -1)));
              }
          }
+
+         pr("Phase2 end");
+
      }
      
      public void Phase3() {  
          boolean gotAMessage = false;
          ArrayList<Message> msgs;
          Message m;
+ 
+         pr("Phase3 begin");
 
-         while (!gotAMessage && !failure.fd_DS(p, c_p) && failure.amIalive(p)) {
+         while (!gotAMessage && !failure.fd_DS(p, c_p) && go()) {
              msgs = net.rcv(p, "phase2");
-             for (int i=0; i < msgs.size(); i++) {
+             for (int i=0; i < msgs.size() && go(); i++) {
                m = msgs.get(i);
                if (m.source == c_p) {
                  gotAMessage = true;
@@ -100,29 +114,33 @@ public class Agent extends Thread {
                  break;
                }               
              }
+             
          }
-         
-         if (!gotAMessage) net.snd(new Message(p, c_p, "nack", null));
+                 
+         if (!gotAMessage && go()) net.snd(new Message(p, c_p, "nack", null));
+
+         pr("Phase3 end");
+
      }
      
      public void Phase4() {
+       pr("Phase4 begin");
          if (p == c_p) {
           
           // Wait for replies   
-          while (net.rcv(p, "ack").size() + net.rcv(p, "nack").size() < (N+1)/2 ) 
+          while (net.rcv(p, "ack").size() + net.rcv(p, "nack").size() < (N+1)/2 && go()) 
           { // Busy wait
           }
          
-          if (net.rcv(p, "ack").size() >= (N+1)/2) {
+          if (net.rcv(p, "ack").size() >= (N+1)/2 && go()) {
            R_broadcast(p, r_p, estimate_p);
           }
          }
-          
-         
+      pr("Phase4 end");          
      }
      
      public void R_broadcast(int p, int r, int estimate) {
-         for (int i = 0; i < N; i++) {
+         for (int i = 0; i < N && go(); i++) {
             net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
          }
      }
@@ -134,27 +152,18 @@ public class Agent extends Thread {
      public void chandraToueg() {
        
 
-        while (state_p.equals("undecided") && failure.amIalive(p) && !stop) {
+        while (!stop && state_p.equals("undecided") && go()) {
          r_p = r_p + 1;
          c_p = (r_p % N);
 
          tick(); // Time passes
          
-         pr("Phase1 begin");
-         Phase1();
-         pr("Phase1 end");
+         System.out.println("Agent " + p + " enters round " + r_p);
          
-         pr("Phase2 begin");
-         Phase2();
-         pr("Phase2 end");
-    
-         pr("Phase3 begin");
-         Phase2();
-         pr("Phase3 end");
-         
-         pr("Phase4 begin");
-         Phase4();
-         pr("Phase4 end");
+         if (go()) Phase1();         
+         if (go()) Phase2();    
+         if (go()) Phase2();         
+         if (go()) Phase4();
          
       }
      }
@@ -174,12 +183,12 @@ public class Agent extends Thread {
            int i, j;
            
            
-           while (failure.amIalive(p) && !stop) {
+           while (!stop && failure.amIalive(p)) {
              msgs = net.rcv(p, "decide");
-                 for (i = 0; i < msgs.size(); i++) {
+                 for (i = 0; i < msgs.size() && failure.amIalive(p); i++) {
                   m = msgs.get(i);
                   if (!done.contains(m)) {
-                      for (j = 0; j < N; j++) {
+                      for (j = 0; j < N && failure.amIalive(p); j++) {
                         net.snd(new Message(m.source, j, "decide", m.payload));
                       }
                       done.add(m);
