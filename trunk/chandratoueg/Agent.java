@@ -136,7 +136,7 @@ public class Agent extends Thread {
     }
 
     public void chandraToueg() {
-        while (!g.failure.stopAll && l.state_p.equals("undecided") && go()) {
+        while (l.state_p.equals("undecided") && go()) {
             l.r_p = l.r_p + 1;
             l.c_p = (l.r_p % g.N);
 

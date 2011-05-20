@@ -54,7 +54,6 @@ public class Main {
             System.out.println("Agent " + j + " decided " + agents[j].l.decide);
        }
        
-       g.failure.stopAll = true;
        
        System.out.println(g.failure.toString());
        
