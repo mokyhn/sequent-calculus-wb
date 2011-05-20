@@ -19,6 +19,7 @@ public class Agent extends Thread {
     private void tick() {
         g.failure.globalClock.tick();
         l.localClock.tick();
+       if (l.localClock.getTime() % 500 == 0) System.out.println("." + l.localClock.getTime());
     }
     
     
@@ -28,14 +29,12 @@ public class Agent extends Thread {
 
     public boolean go() {
         tick();
-        return g.failure.amIalive(l.p);
+        return g.failure.amIalive(l.p) && !g.failure.amIdone(l.p);
     }
 
     public void Phase1() {
         pr("Phase1 begin");
-        if (go()) {
-            g.net.snd(new Message(l.p, l.c_p, "phase1", new Payload(l.r_p, l.estimate_p, l.ts_p)));
-        }
+        g.net.snd(new Message(l.p, l.c_p, "phase1", new Payload(l.r_p, l.estimate_p, l.ts_p)));
         pr("Phase1 end");
     }
 
@@ -45,11 +44,18 @@ public class Agent extends Thread {
         Message m;
         int t = Integer.MIN_VALUE;
         int i;
+        
+        int test = 0;
 
         pr("Phase2 begin");
 
-        if (l.p == l.c_p && go()) {
-            while (!gotMessages && go()) {
+        if (l.p == l.c_p) {
+            while (!gotMessages) {
+                test++;
+                if (test == 10) {
+                 System.out.print("phase 2 " + l.p + ".");
+                 test = 0;
+                }
                 msgs = g.net.rcv(l.p, "phase1");
                 if (msgs.size() >= (g.N + 1) / 2) {
                     gotMessages = true;
@@ -57,20 +63,19 @@ public class Agent extends Thread {
             }
 
             // Find best estimate
-            for (i = 0; i < msgs.size() && go(); i++) {
+            for (i = 0; i < msgs.size(); i++) {
                 m = msgs.get(i);
                 if (m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
-                    t = m.payload.ts;
+                    t            = m.payload.ts;
                 }
             }
 
-            if (go()) {
-                g.net.delete(msgs);
-            }
+            g.net.delete(msgs);
+            
 
             // Send it to all
-            for (i = 0; i < g.N && go(); i++) {
+            for (i = 0; i < g.N; i++) {
                 g.net.snd(new Message(l.p, i, "phase2", new Payload(l.r_p, l.estimate_p, -1)));
             }
         }
@@ -83,12 +88,19 @@ public class Agent extends Thread {
         boolean gotAMessage = false;
         ArrayList<Message> msgs;
         Message m;
-
+ 
+        int test = 0;
+        
         pr("Phase3 begin");
 
-        while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p) && go()) {
+        while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p)) {
+           test++;
+            if (test == 10) {
+            System.out.print("phase 3 " + l.p + ".");
+            test = 0;
+           }
             msgs = g.net.rcv(l.p, "phase2");
-            for (int i = 0; i < msgs.size() && go(); i++) {
+            for (int i = 0; i < msgs.size(); i++) {
                 m = msgs.get(i);
                 if (m.source == l.c_p) {
                     gotAMessage = true;
@@ -102,7 +114,7 @@ public class Agent extends Thread {
 
         }
 
-        if (!gotAMessage && go()) {
+        if (!gotAMessage) {
             g.net.snd(new Message(l.p, l.c_p, "nack", null));
         }
 
@@ -111,22 +123,32 @@ public class Agent extends Thread {
     }
 
     public void Phase4() {
+        int test = 0;
+        
         pr("Phase4 begin");
-        if (l.p == l.c_p) {
+        if (l.p == l.c_p ) {
 
             // Wait for replies   
-            while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 && go()) { // Busy wait
+            while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 ) { // Busy wait
+             test++;
+             if (test == 10) {
+                 System.out.print("phase4 " + l.p + ".");
+                 test = 0;
+             }
+             
             }
 
-            if (g.net.rcv(l.p, "ack").size() >= (g.N + 1) / 2 && go()) {
+            if (g.net.rcv(l.p, "ack").size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
             }
         }
         pr("Phase4 end");
+        pr(g.failure.toString());
+
     }
 
     public void R_broadcast(int p, int r, int estimate) {
-        for (int i = 0; i < g.N && go(); i++) {
+        for (int i = 0; i < g.N; i++) {
             g.net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
         }
     }

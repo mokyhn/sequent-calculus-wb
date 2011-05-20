@@ -4,7 +4,7 @@ package chandratoueg;
  *
  * @author mku
  */
-public class Payload {
+public class Payload implements Cloneable {
     int round;
     int estimate;
     int ts;
@@ -13,6 +13,13 @@ public class Payload {
      this.round    = round;
      this.estimate = estimate;
      this.ts       = ts;
+    }
+    
+    @Override
+    public Payload clone() {
+        Payload theClone = new Payload(this.round, this.estimate, this.ts);
+
+        return theClone;
     }
     
 }
