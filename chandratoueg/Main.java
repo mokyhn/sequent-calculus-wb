@@ -28,7 +28,8 @@ public class Main {
        GlobalState  g   = new GlobalState(N);
    
        // Agent a1 amd a2 are on the same net
-       Agent agents[]  = new Agent[N];
+       Agent agents[]        = new Agent[N];
+       RBListener rblisten[] = new RBListener[N];
        int p;
        int j;
 
@@ -36,6 +37,8 @@ public class Main {
        {
          agents[p] = new Agent(p, g);
          agents[p].start();
+         rblisten[p] = new RBListener(g, agents[p].getLocalState());
+         rblisten[p].start();
        }
 
        
