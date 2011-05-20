@@ -39,7 +39,7 @@ public class Network {
        if(m.destination == dest     &&
           m.msgType.equals(msgType) &&
           !failure.fd_P(m.source));
-       {  // Add quasi reliable communication here.
+       {  
             res.add(m);
        }
      }
