@@ -57,7 +57,8 @@ public class Main {
        
        System.out.println(g.failure.toString());
        
-       
+       // Add agreement check!
+       // Add staticstics information!
        
     }
 }

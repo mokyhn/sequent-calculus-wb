@@ -13,7 +13,7 @@ public class RBListener extends Thread {
     ArrayList<Message> done = new ArrayList();
 
     public RBListener(GlobalState g, LocalState l) {
-        setDaemon(true); //Marks this thread as either a daemon thread or a user thread. 
+        setDaemon(true); //Marks this thread as either a daemon thread (true) or a user thread (false). 
                          //The Java Virtual Machine exits when the only threads running are all daemon threads.
  
         this.g = g;
