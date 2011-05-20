@@ -7,53 +7,30 @@ import java.util.ArrayList;
  * @author mku
  */
 public class Agent extends Thread {
-  Network net;
-  Failure failure;
-  Clock   localClock;
-
-  // Chandra and Toueg variables
-  int     p;        // Id of this agent
-  int     N;        // Total number of agents
-  int     estimate_p;  // p's current estimate
-  String  state_p;     // State variable
-  int     r_p;         // Current round number
-  int     ts_p;        // The last round estimate was updated
-  int     c_p;         // coordinator id
-  int     decide;      // Output: final decision value
-  
-  
-  boolean stop = false;
+   public  LocalState  l;
+   private GlobalState g;
   
   // Update global and local time
   private void tick() {
-     failure.globalClock.tick();
-     localClock.tick();
+     g.failure.globalClock.tick();
+     l.localClock.tick();
   }
 
-  public Agent(int i, Network net, Failure f, int N) {
-      this.p           = i;
-      this.net         = net;
-      this.failure     = f;
-      this.localClock  = new Clock();
-      this.N           = N;
-
-      // Initialization of algorithm variables
-      estimate_p      = p;      // The suggested value is the id of the process
-      state_p         = "undecided"; //
-      r_p             = 0;           // We start in round 0
-      ts_p            = 0;           // The estimate was last updated in round 0
+  public Agent(int p, GlobalState g) {
+    this.g = g;
+    this.l = new LocalState(p);
   }
  
    private class ChandraToueg extends Thread {
      public boolean go() {
       tick();
-      return failure.amIalive(p);
+      return g.failure.amIalive(l.p);
      }
      
        
      public void Phase1() {
        pr("Phase1 begin");
-       if (go()) net.snd(new Message(p, c_p, "phase1", new Payload(r_p,  estimate_p, ts_p)));
+       if (go()) g.net.snd(new Message(l.p, l.c_p, "phase1", new Payload(l.r_p,  l.estimate_p, l.ts_p)));
        pr("Phase1 end");      
      }      
  
@@ -67,26 +44,26 @@ public class Agent extends Thread {
          pr("Phase2 begin");
 
          
-         if (p == c_p && go()) {
+         if (l.p == l.c_p && go()) {
              while (!gotMessages && go()) {
-               msgs = net.rcv(p, "phase1");
-               if (msgs.size() >= (N+1)/2) gotMessages = true;
+               msgs = g.net.rcv(l.p, "phase1");
+               if (msgs.size() >= (g.N+1)/2) gotMessages = true;
              }
              
              // Find best estimate
              for (i=0; i < msgs.size() && go(); i++) {
                   m = msgs.get(i);
                   if (m.payload.ts > t) {
-                      estimate_p = m.payload.estimate;
-                      t          = m.payload.ts;
+                      l.estimate_p = m.payload.estimate;
+                      t            = m.payload.ts;
                   }
              }
              
-            if (go()) net.delete(msgs);
+            if (go()) g.net.delete(msgs);
              
              // Send it to all
-             for (i=0; i < N && go(); i++) {
-               net.snd(new Message(p, i, "phase2", new Payload(r_p, estimate_p, -1)));
+             for (i=0; i < g.N && go(); i++) {
+               g.net.snd(new Message(l.p, i, "phase2", new Payload(l.r_p, l.estimate_p, -1)));
              }
          }
 
@@ -101,23 +78,23 @@ public class Agent extends Thread {
  
          pr("Phase3 begin");
 
-         while (!gotAMessage && !failure.fd_DS(p, c_p) && go()) {
-             msgs = net.rcv(p, "phase2");
+         while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p) && go()) {
+             msgs = g.net.rcv(l.p, "phase2");
              for (int i=0; i < msgs.size() && go(); i++) {
                m = msgs.get(i);
-               if (m.source == c_p) {
+               if (m.source == l.c_p) {
                  gotAMessage = true;
-                 estimate_p  = m.payload.estimate;
-                 ts_p        = r_p;
-                 net.snd(new Message(p, c_p, "ack", null));
-                 net.delete(m);
+                 l.estimate_p  = m.payload.estimate;
+                 l.ts_p        = l.r_p;
+                 g.net.snd(new Message(l.p, l.c_p, "ack", null));
+                 g.net.delete(m);
                  break;
                }               
              }
              
          }
                  
-         if (!gotAMessage && go()) net.snd(new Message(p, c_p, "nack", null));
+         if (!gotAMessage && go()) g.net.snd(new Message(l.p, l.c_p, "nack", null));
 
          pr("Phase3 end");
 
@@ -125,40 +102,40 @@ public class Agent extends Thread {
      
      public void Phase4() {
        pr("Phase4 begin");
-         if (p == c_p) {
+         if (l.p == l.c_p) {
           
           // Wait for replies   
-          while (net.rcv(p, "ack").size() + net.rcv(p, "nack").size() < (N+1)/2 && go()) 
+          while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N+1)/2 && go()) 
           { // Busy wait
           }
          
-          if (net.rcv(p, "ack").size() >= (N+1)/2 && go()) {
-           R_broadcast(p, r_p, estimate_p);
+          if (g.net.rcv(l.p, "ack").size() >= (g.N+1)/2 && go()) {
+           R_broadcast(l.p, l.r_p, l.estimate_p);
           }
          }
       pr("Phase4 end");          
      }
      
      public void R_broadcast(int p, int r, int estimate) {
-         for (int i = 0; i < N && go(); i++) {
-            net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
+         for (int i = 0; i < g.N && go(); i++) {
+            g.net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
          }
      }
      
      public void pr(String text) {
-      System.out.println("Agent " + p + " says " + text);
+      System.out.println("Agent " + l.p + " says " + text);
      }
      
      public void chandraToueg() {
        
 
-        while (!stop && state_p.equals("undecided") && go()) {
-         r_p = r_p + 1;
-         c_p = (r_p % N);
+        while (!g.failure.stopAll && l.state_p.equals("undecided") && go()) {
+         l.r_p = l.r_p + 1;
+         l.c_p = (l.r_p % g.N);
 
          tick(); // Time passes
          
-         System.out.println("Agent " + p + " enters round " + r_p);
+         System.out.println("Agent " + l.p + " enters round " + l.r_p);
          
          if (go()) Phase1();         
          if (go()) Phase2();    
@@ -182,25 +159,27 @@ public class Agent extends Thread {
            Message m;
            int i, j;
            
-           
-           while (!stop && failure.amIalive(p)) {
-             msgs = net.rcv(p, "decide");
-                 for (i = 0; i < msgs.size() && failure.amIalive(p); i++) {
+           System.out.println(g.failure.stopAll + " " + l.p);
+
+           while (!g.failure.stopAll && g.failure.amIalive(l.p)) {
+              System.out.println(g.failure.stopAll + " " + l.p);
+               msgs = g.net.rcv(l.p, "decide");
+                 for (i = 0; i < msgs.size() && g.failure.amIalive(l.p); i++) {
                   m = msgs.get(i);
                   if (!done.contains(m)) {
-                      for (j = 0; j < N && failure.amIalive(p); j++) {
-                        net.snd(new Message(m.source, j, "decide", m.payload));
+                      for (j = 0; j < g.N && g.failure.amIalive(l.p); j++) {
+                        g.net.snd(new Message(m.source, j, "decide", m.payload));
                       }
                       done.add(m);
                   }
 
-                  if (state_p.equals("undecided")) {
-                   state_p = "decided";
-                   decide  = m.payload.estimate;
-                   failure.IamDone(p);
+                  if (l.state_p.equals("undecided")) {
+                   l.state_p = "decided";
+                   l.decide  = m.payload.estimate;
+                   g.failure.IamDone(l.p);
                   }   
                }
-             net.delete(msgs); // Done with these packages
+             g.net.delete(msgs); // Done with these packages
            }
            
            
@@ -217,9 +196,9 @@ public class Agent extends Thread {
   public void run() {
     ChandraToueg ct = new ChandraToueg();
     RBlistener rb   = new RBlistener();
-    
+        rb.start();
+
     ct.start();
-    rb.start();
 
         try {
           ct.join();

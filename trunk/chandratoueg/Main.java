@@ -24,19 +24,18 @@ public class Main {
 
        System.out.println();
 
-       int N = 15;
-       Network net = new Network(N);
-       Failure f   = new Failure(N, net);
-
+       int N = 10;
+       GlobalState  g   = new GlobalState(N);
+   
        // Agent a1 amd a2 are on the same net
-       Agent agents[] = new Agent[N];
-
+       Agent agents[]  = new Agent[N];
+       int p;
        int j;
 
-       for (j = 0; j < N; j++)
+       for (p = 0; p < N; p++)
        {
-         agents[j] = new Agent(j, net, f, N);
-         agents[j].start();
+         agents[p] = new Agent(p, g);
+         agents[p].start();
        }
 
        
@@ -48,15 +47,13 @@ public class Main {
        System.out.println("\n");
        
        for (j = 0; j < N; j++) {
-           if (f.amIdone(j))
-            System.out.println("Agent " + j + " decided " + agents[j].decide);
+           if (g.failure.amIdone(j))
+            System.out.println("Agent " + j + " decided " + agents[j].l.decide);
        }
        
-       for (j = 0; j < N; j++) {
-         agents[j].stop = true;
-       }
+       g.failure.stopAll = true;
        
-       System.out.println(f.toString());
+       System.out.println(g.failure.toString());
        
        
        

@@ -26,6 +26,8 @@ public class Failure {
      private long waTime;       // Weak accuracy time
      private long scTime;       // Strong completeness time
 
+     public boolean stopAll = false;
+     
       public Failure(int n, Network net) {
            prg             = new Random();
            crashed         = new ConcurrentLinkedQueue();
@@ -36,6 +38,7 @@ public class Failure {
            scTime          = 2000;
            globalClock     = new Clock();
            this.net        = net;
+           stopAll         = false;
       }
 
       public boolean amIalive(int whoAmI) {
