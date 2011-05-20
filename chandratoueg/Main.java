@@ -27,6 +27,12 @@ public class Main {
        int N = 10;
        GlobalState  g   = new GlobalState(N);
    
+       //System.out.println("(10+1)/2 = " + ((10+1)/2)); 
+       //if (1==1) return;
+       
+       //System.out.println(Integer.MAX_VALUE);
+       //if (1==1) return;
+       
        // Agent a1 amd a2 are on the same net
        Agent agents[]        = new Agent[N];
        RBListener rblisten[] = new RBListener[N];
