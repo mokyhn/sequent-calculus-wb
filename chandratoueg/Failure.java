@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package chandratoueg;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -95,31 +90,15 @@ public class Failure {
       }
 
       public  boolean fd_P(int p) {
-       return crashed.contains(p);
+          synchronized (lock_CRASHED) {
+           return crashed.contains(p);
+          }
       }
       
       
     @Override
       public String toString() {
         
-        /*String res = "";
-        int i;
-
-        for (i=0; i < N; i++) {
-          res = res + "\n";
-
-          if (crashed.contains(i)) {res = res + "(c " + i + ")";}
-          if (trustedImortals.contains(i)) {
-              res = res + "(ti " + i + ")";
-          }
-          if (done.contains(i))   res = res + "(d " + i + ")";
-         
-        }
-        */
-    /*Comparator comparator = Collections.reverseOrder();
-         Collections.sort(crashed.,comparator);
-         Collections.sort(trustedImortals.toArray(),comparator);
-         Collections.sort(done,comparator);*/
         return "Crashed: " + crashed.toString() + "\n" +
                "TI's:    " + trustedImortals.toString() + "\n" +
                "Done:    " + done.toString();        
