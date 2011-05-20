@@ -27,6 +27,9 @@ public class Failure {
      private long scTime;       // Strong completeness time
 
      
+     private Object lock_TI;
+     private Object lock_CRASHED;
+     
       public Failure(int n, Network net) {
            prg             = new Random();
            crashed         = new ConcurrentLinkedQueue();
@@ -37,30 +40,35 @@ public class Failure {
            scTime          = 2000;
            globalClock     = new Clock();
            this.net        = net;
+           
+           lock_TI         = new Object();
+           lock_CRASHED    = new Object();
+
       }
 
       public boolean amIalive(int whoAmI) {
-       if (crashed.contains(whoAmI)) return false;
-
-       if (prg.nextBoolean() &&
-           globalClock.getTime() > waTime &&
-           !trustedImortals.contains(whoAmI)) {
-           trustedImortals.add(whoAmI);
-           return true;
-       }
-
-       
-       if (!trustedImortals.contains(whoAmI) && 
-           prg.nextBoolean() &&
-           crashed.size() < N/2) {
-             crashed.add(whoAmI);
-             net.delete(whoAmI);  // Remove net messages
-             return false;
-       } 
-
-
-        return true;
-       }
+        synchronized (lock_CRASHED) {    
+           if (crashed.contains(whoAmI)) return false;
+        
+            synchronized (lock_TI) {
+               if (!trustedImortals.contains(whoAmI)) {
+                if (prg.nextBoolean() && globalClock.getTime() > waTime) { 
+                 trustedImortals.add(whoAmI);
+                 return true;
+                }
+               
+               if (!trustedImortals.contains(whoAmI) && 
+                   prg.nextBoolean() &&
+                   crashed.size() < N/2) {
+                   crashed.add(whoAmI);
+                   net.delete(whoAmI);  // Remove net messages
+                   return false;
+                   }
+               }
+            }
+        }
+       return true;
+      }
 
       public void IamDone(int whoAmI) {
           if (!done.contains(whoAmI) &&

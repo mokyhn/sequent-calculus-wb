@@ -29,7 +29,6 @@ public class Network {
      Message m;
      ArrayList<Message> res = new ArrayList();   
      Iterator<Message> it;
-     int i          = 0;
 
      if (net.isEmpty()) return res;
 
