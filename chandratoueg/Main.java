@@ -4,27 +4,14 @@ package chandratoueg;
 public class Main {
 
    public static void main(String[] args) throws InterruptedException {
-       Tree t1 = new Tree(10);
-       Tree t2 = new Tree(20);
-       Tree t3 = new Tree(30);
-
-       int i;
-
-       t2.left  = t1;
-       t2.right = t3;
-
-       t2.insert(45);
-
-
-       t2.insert(10);
-
-       t2.print();
-
-       //System.out.print(t2.search(45));
-
-       System.out.println();
-
-       int N = 10;
+       if (args.length == 0) {
+         System.out.println("Please supply a number of agents...");
+         System.exit(0);
+       }
+       
+       int N = Integer.parseInt(args[0]);
+       
+       
        GlobalState  g   = new GlobalState(N);
    
        //System.out.println("(10+1)/2 = " + ((10+1)/2)); 
