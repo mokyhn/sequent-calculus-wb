@@ -12,17 +12,23 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Network {
    int N;
    private ConcurrentLinkedQueue<Message> net;
-   Failure            failure;
+   Failure failure;
+   
+   ConcurrentLinkedQueue<Message>[] inboxes;
 
+    
+   
    public Network (int N) {
-     this.N = N;
-     this.net     = new ConcurrentLinkedQueue();
-     this.failure = new Failure(N, this);
+     this.N        = N;
+     this.net      = new ConcurrentLinkedQueue();
+     this.failure  = new Failure(N, this);
+     this.inboxes  = new ConcurrentLinkedQueue[N];
+     for (int i = 0; i < N; i++)
+         this.inboxes[i] = new ConcurrentLinkedQueue();
    }
 
-
    public void snd(Message m){
-       net.add(m);
+       inboxes[m.destination].add(m);       
    }
 
    public ArrayList<Message> rcv(int dest, String msgType) {
@@ -30,15 +36,13 @@ public class Network {
      ArrayList<Message> res = new ArrayList();   
      Iterator<Message> it;
 
-     if (net.isEmpty()) return res;
+     if (inboxes[dest].isEmpty()) return res;
 
-     it = net.iterator();
+     it = inboxes[dest].iterator();
      
      while(it.hasNext()) {
        m = it.next();
-       if(m.destination == dest     &&
-          m.msgType.equals(msgType) &&
-          !failure.fd_P(m.source));
+       if(m.msgType.equals(msgType));
        {  
             res.add(m);
        }
@@ -49,7 +53,7 @@ public class Network {
 
 
    public void delete(Message m) {      
-          net.remove(m);
+          inboxes[m.destination].remove(m);
    }
    
    public void delete(ArrayList<Message> msgs) {
@@ -57,7 +61,7 @@ public class Network {
     
     for (int i = 0; i < msgs.size(); i++) {
      m = msgs.get(i);
-     net.remove(m);    
+     inboxes[m.destination].remove(m);    
     }
    }
 
@@ -79,5 +83,5 @@ public class Network {
    @Override
    public String toString () {
        return "Size of net " + net.size();
-   }
+   }    
 }
