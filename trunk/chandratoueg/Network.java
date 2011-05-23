@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Network {
    int N;
-   private ConcurrentLinkedQueue<Message> net;
    Failure failure;
    
    ConcurrentLinkedQueue<Message>[] inboxes;
@@ -20,7 +19,6 @@ public class Network {
    
    public Network (int N) {
      this.N        = N;
-     this.net      = new ConcurrentLinkedQueue();
      this.failure  = new Failure(N, this);
      this.inboxes  = new ConcurrentLinkedQueue[N];
      for (int i = 0; i < N; i++)
@@ -28,6 +26,7 @@ public class Network {
    }
 
    public void snd(Message m){
+       if (!failure.fd_P(m.source) && !failure.fd_P(m.destination))
        inboxes[m.destination].add(m);       
    }
 
@@ -64,24 +63,6 @@ public class Network {
      inboxes[m.destination].remove(m);    
     }
    }
-
-   
-   public void delete(int source) {
-    ArrayList<Message> messages = new ArrayList();
-    Message m;
-    
-    Iterator<Message> it = net.iterator();
-   
-    while (it.hasNext()) {
-     m = it.next();
-     if (m.source == source) messages.add(m);
-    }
-    
-    delete(messages);
-   }
-   
-   @Override
-   public String toString () {
-       return "Size of net " + net.size();
-   }    
+  
+       
 }
