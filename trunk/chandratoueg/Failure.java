@@ -31,8 +31,8 @@ public class Failure {
            done            = new ConcurrentLinkedQueue();
            trustedImortals = new ConcurrentLinkedQueue();
            N               = n; // Total number of agents
-           waTime          = 0; // 100;
-           scTime          = 0; // 2000;
+           waTime          = Integer.MAX_VALUE;
+           scTime          = Integer.MAX_VALUE; // 2000;
            globalClock     = new Clock();
            this.net        = net;
            
@@ -56,7 +56,7 @@ public class Failure {
                    prg.nextBoolean() &&
                    crashed.size() < N/2) {
                    crashed.add(whoAmI);
-                   //net.delete(whoAmI);  // Remove net messages
+                   net.inboxes[whoAmI].clear();  // Remove net messages
                    return false;
                    }
                }
