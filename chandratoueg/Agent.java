@@ -20,7 +20,6 @@ public class Agent extends Thread {
     private void tick() {
         g.failure.globalClock.tick();
         l.localClock.tick();
-       if (l.localClock.getTime() % 500 == 0) System.out.println("." + l.localClock.getTime());
     }
     
     
@@ -52,11 +51,11 @@ public class Agent extends Thread {
 
         if (l.p == l.c_p) {
             while (!gotMessages) {
-                test++;
-                if (test == 10) {
-                 System.out.print("phase 2 " + l.p + ".");
-                 test = 0;
-                }
+                //test++;
+                //if (test == 10) {
+                // System.out.print("phase 2 " + l.p + ".");
+                // test = 0;
+                //}
                 msgs = g.net.rcv(l.p, "phase1");
                 if (msgs.size() >= (g.N + 1) / 2) {
                     gotMessages = true;
@@ -95,11 +94,11 @@ public class Agent extends Thread {
         pr("Phase3 begin");
 
         while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p)) {
-           test++;
-            if (test == 10) {
-            System.out.print("phase 3 " + l.p + ".");
-            test = 0;
-           }
+           //test++;
+            //if (test == 10) {
+            //System.out.print("phase 3 " + l.p + ".");
+            //test = 0;
+           //}
             msgs = g.net.rcv(l.p, "phase2");
             for (int i = 0; i < msgs.size(); i++) {
                 m = msgs.get(i);
@@ -131,11 +130,11 @@ public class Agent extends Thread {
 
             // Wait for replies   
             while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 ) { // Busy wait
-             test++;
-             if (test == 10) {
-                 System.out.print("phase4 " + l.p + ".");
-                 test = 0;
-             }
+             //test++;
+             //if (test == 10) {
+             //    System.out.print("phase4 " + l.p + ".");
+             //    test = 0;
+             //}
              
             }
 
@@ -144,7 +143,7 @@ public class Agent extends Thread {
             }
         }
         pr("Phase4 end");
-        pr(g.failure.toString());
+        //pr(g.failure.toString());
 
     }
 
@@ -155,7 +154,8 @@ public class Agent extends Thread {
     }
 
     public void pr(String text) {
-        System.out.println("Agent " + l.p + " says " + text);
+        //System.out.println("Agent " + l.p + " says " + text);
+       return;
     }
 
     public void chandraToueg() {
@@ -165,7 +165,7 @@ public class Agent extends Thread {
 
             tick(); // Time passes
 
-            System.out.println("Agent " + l.p + " enters round " + l.r_p);
+            pr("Agent " + l.p + " enters round " + l.r_p);
 
             if (go()) {
                 Phase1();
