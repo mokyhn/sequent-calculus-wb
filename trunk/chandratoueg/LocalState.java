@@ -1,8 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package chandratoueg;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
@@ -20,6 +18,8 @@ public class LocalState {
 
     Clock   localClock;
 
+    ConcurrentLinkedQueue<Message> inbox;
+    ConcurrentLinkedQueue<Message> outbox;
     
     public LocalState(int p) {
         this.p          = p;
@@ -28,6 +28,9 @@ public class LocalState {
         this.r_p        = 0;           // We start in round 0
         this.ts_p       = 0;           // The estimate was last updated in round 0
         this.localClock = new Clock();
+        
+        this.inbox  = new ConcurrentLinkedQueue<Message>();
+        this.outbox = new ConcurrentLinkedQueue<Message>();
     }
     
 }

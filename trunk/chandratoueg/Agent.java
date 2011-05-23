@@ -1,6 +1,7 @@
 package chandratoueg;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
@@ -14,7 +15,7 @@ public class Agent extends Thread {
         this.g = g;
         this.l = new LocalState(p);
     }
-
+    
     // Update global and local time
     private void tick() {
         g.failure.globalClock.tick();
