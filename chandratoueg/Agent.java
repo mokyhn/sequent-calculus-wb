@@ -1,7 +1,6 @@
 package chandratoueg;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  *
@@ -32,10 +31,16 @@ public class Agent extends Thread {
         return g.failure.amIalive(l.p) && !g.failure.amIdone(l.p);
     }
 
+    private void log(String s) {
+     g.log.add(l.p + ": " + s);
+    }
+    
     public void Phase1() {
-        pr("Phase1 begin");
-        g.net.snd(new Message(l.p, l.c_p, "phase1", new Payload(l.r_p, l.estimate_p, l.ts_p)));
-        pr("Phase1 end");
+        Message m = new Message(l.p, l.c_p, "phase1", new Payload(l.r_p, l.estimate_p, l.ts_p));
+        
+        log("Phase1 " + m.toString());
+        g.net.snd(m);
+        
     }
 
     public void Phase2() {
@@ -45,17 +50,10 @@ public class Agent extends Thread {
         int t = Integer.MIN_VALUE;
         int i;
         
-        int test = 0;
-
         pr("Phase2 begin");
 
         if (l.p == l.c_p) {
             while (!gotMessages) {
-                //test++;
-                //if (test == 10) {
-                // System.out.print("phase 2 " + l.p + ".");
-                // test = 0;
-                //}
                 msgs = g.net.rcv(l.p, "phase1");
                 if (msgs.size() >= (g.N + 1) / 2) {
                     gotMessages = true;
@@ -68,6 +66,7 @@ public class Agent extends Thread {
                 if (m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
                     t            = m.payload.ts;
+                    log("Phase 2, updated estimate: " + m.toString());
                 }
             }
 
@@ -88,17 +87,10 @@ public class Agent extends Thread {
         boolean gotAMessage = false;
         ArrayList<Message> msgs;
         Message m;
- 
-        int test = 0;
-        
-        pr("Phase3 begin");
+        Message mSnd;
+         
 
         while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p)) {
-           //test++;
-            //if (test == 10) {
-            //System.out.print("phase 3 " + l.p + ".");
-            //test = 0;
-           //}
             msgs = g.net.rcv(l.p, "phase2");
             for (int i = 0; i < msgs.size(); i++) {
                 m = msgs.get(i);
@@ -106,7 +98,9 @@ public class Agent extends Thread {
                     gotAMessage = true;
                     l.estimate_p = m.payload.estimate;
                     l.ts_p = l.r_p;
-                    g.net.snd(new Message(l.p, l.c_p, "ack", null));
+                    mSnd = new Message(l.p, l.c_p, "ack", null);
+                    g.net.snd(mSnd);
+                    log("Phase3: " + mSnd.toString());
                     g.net.delete(m);
                     break;
                 }
@@ -115,35 +109,26 @@ public class Agent extends Thread {
         }
 
         if (!gotAMessage) {
-            g.net.snd(new Message(l.p, l.c_p, "nack", null));
+            mSnd = new Message(l.p, l.c_p, "nack", null);
+            log("Phase3: " + mSnd.toString());
+            g.net.snd(mSnd);
         }
 
-        pr("Phase3 end");
 
     }
 
-    public void Phase4() {
-        int test = 0;
-        
-        pr("Phase4 begin");
+    public void Phase4() {        
         if (l.p == l.c_p ) {
 
             // Wait for replies   
-            while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 ) { // Busy wait
-             //test++;
-             //if (test == 10) {
-             //    System.out.print("phase4 " + l.p + ".");
-             //    test = 0;
-             //}
-             
+            while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 ) { // Busy wait  
             }
 
             if (g.net.rcv(l.p, "ack").size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
+                log("Phase 4: broadcast " + "r_p=" + l.r_p + " estimate=" + l.estimate_p);
             }
         }
-        pr("Phase4 end");
-        //pr(g.failure.toString());
 
     }
 
@@ -154,7 +139,6 @@ public class Agent extends Thread {
     }
 
     public void pr(String text) {
-        //System.out.println("Agent " + l.p + " says " + text);
        return;
     }
 
@@ -165,7 +149,6 @@ public class Agent extends Thread {
 
             tick(); // Time passes
 
-            pr("Agent " + l.p + " enters round " + l.r_p);
 
             if (go()) {
                 Phase1();

@@ -12,10 +12,13 @@ public class GlobalState {
    int     N;           // Total number of agents
    Network net;
    Failure failure;
+   Log     log;
  
    public GlobalState(int N) {
     this.N       = N;
-    this.net     = new Network(N);
+    this.log     = new Log(true);
+
+    this.net     = new Network(N,      log);
     this.failure = new Failure(N, net);
    }
 }

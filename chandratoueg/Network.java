@@ -13,12 +13,15 @@ public class Network {
    int N;
    Failure failure;
    
+   Log log;
+   
    ConcurrentLinkedQueue<Message>[] inboxes;
 
     
    
-   public Network (int N) {
+   public Network (int N, Log log) {
      this.N        = N;
+     this.log      = log;
      this.failure  = new Failure(N, this);
      this.inboxes  = new ConcurrentLinkedQueue[N];
      for (int i = 0; i < N; i++)

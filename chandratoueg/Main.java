@@ -41,7 +41,9 @@ public class Main {
 
        System.out.println("----------------------------");
        System.out.println("\n");
-       
+
+       System.out.println(g.log.toString());
+
        for (j = 0; j < N; j++) {
            if (g.failure.amIdone(j))
             System.out.println("Agent " + j + " decided " + agents[j].l.decide);
@@ -49,6 +51,9 @@ public class Main {
        
        
        System.out.println(g.failure.toString());
+       
+       System.out.println();
+       
        
        // Add agreement check!
        // Add staticstics information!
