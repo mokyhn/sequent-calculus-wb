@@ -18,6 +18,7 @@ public class Failure {
 
      Clock   globalClock;
 
+     
      private long waTime;       // Weak accuracy time
      private long scTime;       // Strong completeness time
 
@@ -49,6 +50,7 @@ public class Failure {
                if (!trustedImortals.contains(whoAmI)) {
                 if (prg.nextBoolean() && globalClock.getTime() > waTime) { 
                  trustedImortals.add(whoAmI);
+                 net.log.add("Agent " + whoAmI + " is now TI...");
                  return true;
                 }
                
@@ -56,6 +58,7 @@ public class Failure {
                    prg.nextBoolean() &&
                    crashed.size() < N/2) {
                    crashed.add(whoAmI);
+                   net.log.add("Agent " + whoAmI + " CRASHED...");
                    net.inboxes[whoAmI].clear();  // Remove net messages
                    return false;
                    }

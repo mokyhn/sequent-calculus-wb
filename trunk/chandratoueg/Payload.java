@@ -16,6 +16,14 @@ public class Payload implements Cloneable {
     }
     
     @Override
+    public String toString() {
+     return "round=" + round + 
+            " estimate=" + estimate +
+            " time stamp=" + ts;
+    }
+    
+    
+    @Override
     public Payload clone() {
         Payload theClone = new Payload(this.round, this.estimate, this.ts);
 
