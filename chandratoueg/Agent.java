@@ -50,8 +50,6 @@ public class Agent extends Thread {
         int t = Integer.MIN_VALUE;
         int i;
         
-        pr("Phase2 begin");
-
         if (l.p == l.c_p) {
             while (!gotMessages) {
                 msgs = g.net.rcv(l.p, "phase1");
@@ -78,11 +76,11 @@ public class Agent extends Thread {
                 g.net.snd(new Message(l.p, i, "phase2", new Payload(l.r_p, l.estimate_p, -1)));
             }
         }
-
-        pr("Phase2 end");
+        
 
     }
 
+    // The if in the body of the while loop is never executed?!
     public void Phase3() {
         boolean gotAMessage = false;
         ArrayList<Message> msgs;
@@ -99,8 +97,8 @@ public class Agent extends Thread {
                     l.estimate_p = m.payload.estimate;
                     l.ts_p = l.r_p;
                     mSnd = new Message(l.p, l.c_p, "ack", null);
-                    g.net.snd(mSnd);
                     log("Phase3: " + mSnd.toString());
+                    g.net.snd(mSnd);
                     g.net.delete(m);
                     break;
                 }
@@ -127,6 +125,9 @@ public class Agent extends Thread {
             if (g.net.rcv(l.p, "ack").size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
                 log("Phase 4: broadcast " + "r_p=" + l.r_p + " estimate=" + l.estimate_p);
+                l.state_p = "decided";
+                l.decide = l.estimate_p;
+                g.failure.IamDone(l.p);
             }
         }
 
