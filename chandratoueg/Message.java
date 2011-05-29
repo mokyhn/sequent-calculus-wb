@@ -26,8 +26,12 @@ public class Message implements Cloneable {
     
     @Override
     public String toString() {
-      return "msgtype=" + msgType + 
+      String p = "";
+      
+      if (payload != null) p = payload.toString();
+        
+        return "msgtype=" + msgType + 
              ":" + source + " ---> " + destination +
-              " " + payload.toString();
+              " " + p;
     }
 }
