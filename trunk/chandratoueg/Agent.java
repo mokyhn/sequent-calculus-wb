@@ -61,7 +61,7 @@ public class Agent extends Thread {
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
                 m = msgs.get(i);
-                if (m.payload.ts > t) {
+                if (m.msgType.equals("phase1") && m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
                     t            = m.payload.ts;
                     log("Phase 2, updated estimate: " + m.toString());
@@ -158,7 +158,7 @@ public class Agent extends Thread {
                 Phase2();
             }
             if (go()) {
-                Phase2();
+                Phase3();
             }
             if (go()) {
                 Phase4();
