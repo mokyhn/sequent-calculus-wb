@@ -14,8 +14,13 @@ public class Network {
    Failure failure;
    
    Log log;
+
+        Message m;
+     ArrayList<Message> res = new ArrayList();   
+     Iterator<Message> it;
+
    
-   ConcurrentLinkedQueue<Message>[] inboxes;
+   private ConcurrentLinkedQueue<Message>[] inboxes;
 
     
    
@@ -28,15 +33,11 @@ public class Network {
          this.inboxes[i] = new ConcurrentLinkedQueue();
    }
 
-   public void snd(Message m){
-       if (!failure.fd_P(m.source) && !failure.fd_P(m.destination))
-       inboxes[m.destination].add(m);       
+   public synchronized  void snd(Message m) {
+       inboxes[m.destination].add(m);  
    }
 
-   public ArrayList<Message> rcv(int dest, String msgType) {
-     Message m;
-     ArrayList<Message> res = new ArrayList();   
-     Iterator<Message> it;
+   public synchronized  ArrayList<Message> rcv(int dest, String msgType) {
 
      if (inboxes[dest].isEmpty()) return res;
 
@@ -44,9 +45,15 @@ public class Network {
      
      while(it.hasNext()) {
        m = it.next();
+       
        if(m.msgType.equals(msgType));
        {  
-            res.add(m);
+         if(!m.msgType.equals(msgType)) {
+          System.out.println("Oh nooooo" );
+          System.exit(0);
+         }
+
+           res.add(m);
        }
      }
 
@@ -54,18 +61,22 @@ public class Network {
    }
 
 
-   public void delete(Message m) {      
-          inboxes[m.destination].remove(m);
+   public synchronized  void delete(Message m) {      
+          //inboxes[m.destination].remove(m);
    }
    
-   public void delete(ArrayList<Message> msgs) {
-    Message m;
+   public synchronized void delete(ArrayList<Message> msgs) {
+    /*Message m;
     
     for (int i = 0; i < msgs.size(); i++) {
      m = msgs.get(i);
      inboxes[m.destination].remove(m);    
-    }
+    }*/
    }
+
+    public  synchronized void deleteAll(int whoAmI) {
+        //inboxes[whoAmI].clear();
+    }
   
        
 }
