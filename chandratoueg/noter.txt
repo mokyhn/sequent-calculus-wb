@@ -1,0 +1,5 @@
+Brug:
+
+ java.util.concurrent.ArrayBlockingQueue<E>
+
+i forbindelse med mit net!

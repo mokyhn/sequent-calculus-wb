@@ -1,6 +1,7 @@
 package chandratoueg;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
@@ -36,7 +37,7 @@ public class Agent extends Thread {
     }
     
     public void Phase1() {
-        Message m = new Message(l.p, l.c_p, "phase1", new Payload(l.r_p, l.estimate_p, l.ts_p));
+        Message m = new Message(l.p, l.c_p, Message.PHASE1, new Payload(l.r_p, l.estimate_p, l.ts_p));
         
         log("Phase1 " + m.toString());
         g.net.snd(m);
@@ -45,14 +46,14 @@ public class Agent extends Thread {
 
     public void Phase2() {
         boolean gotMessages = false;
-        ArrayList<Message> msgs = new ArrayList();
+        ConcurrentLinkedQueue<Message> msgs = new ConcurrentLinkedQueue<Message>();
         Message m;
         int t = Integer.MIN_VALUE;
         int i;
         
         if (l.p == l.c_p) {
             while (!gotMessages) {
-                msgs = g.net.rcv(l.p, "phase1");
+                msgs = g.net.rcv(l.p, Message.PHASE1);
                 if (msgs.size() >= (g.N + 1) / 2) {
                     gotMessages = true;
                 }
@@ -60,20 +61,20 @@ public class Agent extends Thread {
 
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
-                m = msgs.get(i);
-                if (m.msgType.equals("phase1") && m.payload.ts > t) {
+                m = (Message) (msgs.toArray())[i];
+                if (m.msgType == Message.PHASE1 && m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
                     t            = m.payload.ts;
                     log("Phase 2, updated estimate: " + m.toString());
                 }
             }
 
-            g.net.delete(msgs);
+            //g.net.delete(msgs);
             
 
             // Send it to all
             for (i = 0; i < g.N; i++) {
-                g.net.snd(new Message(l.p, i, "phase2", new Payload(l.r_p, l.estimate_p, -1)));
+                g.net.snd(new Message(l.p, i, Message.PHASE2, new Payload(l.r_p, l.estimate_p, -1)));
             }
         }
         
@@ -83,20 +84,20 @@ public class Agent extends Thread {
     // The if in the body of the while loop is never executed?!
     public void Phase3() {
         boolean gotAMessage = false;
-        ArrayList<Message> msgs;
+        ConcurrentLinkedQueue<Message> msgs;
         Message m;
         Message mSnd;
          
 
         while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p)) {
-            msgs = g.net.rcv(l.p, "phase2");
+            msgs = g.net.rcv(l.p, Message.PHASE2);
             for (int i = 0; i < msgs.size(); i++) {
-                m = msgs.get(i);
+                m = (Message) (msgs.toArray())[i];
                 if (m.source == l.c_p) {
                     gotAMessage = true;
                     l.estimate_p = m.payload.estimate;
                     l.ts_p = l.r_p;
-                    mSnd = new Message(l.p, l.c_p, "ack", null);
+                    mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, null);
                     log("Phase3: " + mSnd.toString());
                     g.net.snd(mSnd);
                     g.net.delete(m);
@@ -107,7 +108,7 @@ public class Agent extends Thread {
         }
 
         if (!gotAMessage) {
-            mSnd = new Message(l.p, l.c_p, "nack", null);
+            mSnd = new Message(l.p, l.c_p, Message.PHASE3NACK, null);
             log("Phase3: " + mSnd.toString());
             g.net.snd(mSnd);
         }
@@ -119,10 +120,10 @@ public class Agent extends Thread {
         if (l.p == l.c_p ) {
 
             // Wait for replies   
-            while (g.net.rcv(l.p, "ack").size() + g.net.rcv(l.p, "nack").size() < (g.N + 1) / 2 ) { // Busy wait  
+            while (g.net.rcv(l.p, Message.PHASE3ACK).size() + g.net.rcv(l.p, Message.PHASE3NACK).size() < (g.N + 1) / 2 ) { // Busy wait  
             }
 
-            if (g.net.rcv(l.p, "ack").size() >= (g.N + 1) / 2 ) {
+            if (g.net.rcv(l.p, Message.PHASE3ACK).size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
                 log("Phase 4: broadcast " + "r_p=" + l.r_p + " estimate=" + l.estimate_p);
                 l.state_p = "decided";
@@ -135,7 +136,7 @@ public class Agent extends Thread {
 
     public void R_broadcast(int p, int r, int estimate) {
         for (int i = 0; i < g.N; i++) {
-            g.net.snd(new Message(p, i, "decide", new Payload(r, estimate, -2)));
+            g.net.snd(new Message(p, i, Message.PHASE4DECIDE, new Payload(r, estimate, -2)));
         }
     }
 

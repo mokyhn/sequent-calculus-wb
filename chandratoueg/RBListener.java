@@ -1,6 +1,7 @@
 package chandratoueg;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
@@ -21,17 +22,17 @@ public class RBListener extends Thread {
     }
 
     public void R_deliver() {
-        ArrayList<Message> msgs;
+        ConcurrentLinkedQueue<Message> msgs;
         Message m;
         int i, j;
 
         while (g.failure.amIalive(l.p)) {
-            msgs = g.net.rcv(l.p, "decide");
+            msgs = g.net.rcv(l.p, Message.PHASE4DECIDE);
             for (i = 0; i < msgs.size() && g.failure.amIalive(l.p); i++) {
-                m = msgs.get(i);
+                m = (Message) (msgs.toArray())[i];
                 if (!done.contains(m)) {
                     for (j = 0; j < g.N && g.failure.amIalive(l.p); j++) {
-                        g.net.snd(new Message(m.source, j, "decide", m.payload));
+                        g.net.snd(new Message(m.source, j, Message.PHASE4DECIDE, m.payload));
                     }
                     done.add(m);
                 }
@@ -42,7 +43,7 @@ public class RBListener extends Thread {
                     g.failure.IamDone(l.p);
                 }
             }
-            g.net.delete(msgs); // Done with these packages
+            //g.net.delete(msgs); // Done with these packages
         }
     }
 
