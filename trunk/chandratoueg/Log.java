@@ -28,13 +28,17 @@ public class Log {
       relayToScreen = b;
    }
    
-   public void add(String s) {
+   public void disable() {
+    logFlag = false;
+   }
+   
+   public synchronized void add(String s) {
      if (relayToScreen) { System.out.println(s); }
      if (logFlag) msgs.add(s + "\n");
    }
    
    @Override
-   public String toString() {
+   public synchronized String toString() {
     Iterator it = msgs.iterator();
     String s = null;
     String result = new String();

@@ -14,6 +14,8 @@ public class Main {
        
        GlobalState  g   = new GlobalState(N);
    
+       g.log.disable();
+       
        //System.out.println("(10+1)/2 = " + ((10+1)/2)); 
        //if (1==1) return;
        

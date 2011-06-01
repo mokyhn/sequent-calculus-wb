@@ -7,11 +7,18 @@ package chandratoueg;
 public class Message implements Cloneable {
     int     source;
     int     destination;
-    String  msgType;
+    int     msgType;
     Payload payload;
 
+    static final byte N_MSG_TYPES  = 5;
+    static final byte PHASE1       = 0;
+    static final byte PHASE2       = 1;
+    static final byte PHASE3ACK    = 2;
+    static final byte PHASE3NACK   = 3;
+    static final byte PHASE4DECIDE = 4;
+    
 
-    public Message(int source, int destination, String mt, Payload payload){
+    public Message(int source, int destination, int mt, Payload payload){
         this.source      = source;
         this.destination = destination;
         this.msgType     = mt;       

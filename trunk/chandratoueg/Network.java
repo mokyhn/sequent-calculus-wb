@@ -15,49 +15,33 @@ public class Network {
    
    Log log;
 
-        Message m;
-     ArrayList<Message> res = new ArrayList();   
-     Iterator<Message> it;
+   Message m;
+   ArrayList<Message> res = new ArrayList();   
+   Iterator<Message> it;
 
    
-   private ConcurrentLinkedQueue<Message>[] inboxes;
+   private ConcurrentLinkedQueue<Message>[][] inboxes;
 
     
    
    public Network (int N, Log log) {
+     int j;
+     
      this.N        = N;
      this.log      = log;
      this.failure  = new Failure(N, this);
-     this.inboxes  = new ConcurrentLinkedQueue[N];
+     this.inboxes  = new ConcurrentLinkedQueue[N][Message.N_MSG_TYPES];
      for (int i = 0; i < N; i++)
-         this.inboxes[i] = new ConcurrentLinkedQueue();
+       for (j = 0; j < m.N_MSG_TYPES; j++)
+         this.inboxes[i][j] = new ConcurrentLinkedQueue();
    }
 
    public synchronized  void snd(Message m) {
-       inboxes[m.destination].add(m);  
+       inboxes[m.destination][m.msgType].add(m);  
    }
 
-   public synchronized  ArrayList<Message> rcv(int dest, String msgType) {
-
-     if (inboxes[dest].isEmpty()) return res;
-
-     it = inboxes[dest].iterator();
-     
-     while(it.hasNext()) {
-       m = it.next();
-       
-       if(m.msgType.equals(msgType));
-       {  
-         if(!m.msgType.equals(msgType)) {
-          System.out.println("Oh nooooo" );
-          System.exit(0);
-         }
-
-           res.add(m);
-       }
-     }
-
-     return res;
+   public synchronized ConcurrentLinkedQueue<Message> rcv(int dest, byte msgType) {
+     return inboxes[dest][msgType];
    }
 
 
