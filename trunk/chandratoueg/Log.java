@@ -32,13 +32,13 @@ public class Log {
     logFlag = false;
    }
    
-   public synchronized void add(String s) {
+   public void add(String s) {
      if (relayToScreen) { System.out.println(s); }
      if (logFlag) msgs.add(s + "\n");
    }
    
    @Override
-   public synchronized String toString() {
+   public String toString() {
     Iterator it = msgs.iterator();
     String s = null;
     String result = new String();

@@ -59,7 +59,6 @@ public class Failure {
                    crashed.size() < N/2) {
                    crashed.add(whoAmI);
                    net.log.add("Agent " + whoAmI + " CRASHED...");
-                   net.deleteAll(whoAmI);  // Remove net messages
                    return false;
                    }
                }
