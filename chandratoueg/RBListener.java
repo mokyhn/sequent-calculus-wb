@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class RBListener extends Thread {
 
-    GlobalState g;
-    LocalState l;
+    GlobalState        g;
+    LocalState         l;
     ArrayList<Message> done = new ArrayList();
 
     public RBListener(GlobalState g, LocalState l) {
@@ -24,15 +24,15 @@ public class RBListener extends Thread {
     public void R_deliver() {
         ConcurrentLinkedQueue<Message> msgs;
         Message m;
-        int i, j;
+        int i, p;
 
-        while (g.failure.amIalive(l.p) && !g.failure.amIdone(l.p)) {
+        while (g.failure.amIalive(l.p) ) { // && !g.failure.amIdone(l.p)
             msgs = g.net.rcv(l.p, Message.PHASE4DECIDE);
             for (i = 0; i < msgs.size(); i++) {
                 m = (Message) (msgs.toArray())[i];
                 if (!done.contains(m)) {
-                    for (j = 0; j < g.N && g.failure.amIalive(l.p); j++) {
-                        g.net.snd(new Message(m.source, j, Message.PHASE4DECIDE, m.payload));
+                    for (p = 0; p < g.N && g.failure.amIalive(l.p) && !g.failure.fd_P(p); p++) {
+                        g.net.snd(new Message(m.source, p, Message.PHASE4DECIDE, m.payload));
                     }
                     done.add(m);
                 }

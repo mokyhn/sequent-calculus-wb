@@ -8,14 +8,13 @@ import java.util.Random;
  * @author mku
  */
 public class Failure {
-    private  Network net;
-     private Random             prg;
-     private ConcurrentLinkedQueue  crashed; // List of agent id's that have failed
-     private ConcurrentLinkedQueue  done;   // List of agent id's that have
-                                        // completed a trace
-     private ConcurrentLinkedQueue  trustedImortals;
-     private int                N;
+     private int                    N;                // Total number of agents
+     private Random                 prg;
+     private ConcurrentLinkedQueue  crashed;          // Agents that failed
+     private ConcurrentLinkedQueue  completed;        // Agents that completed
+     private ConcurrentLinkedQueue  trustedImortals;  // Trusted immortal agents
 
+     Log     log;
      Clock   globalClock;
 
      
@@ -23,21 +22,19 @@ public class Failure {
      private long scTime;       // Strong completeness time
 
      
-     private Object lock_TI;
-     private Object lock_CRASHED;
+     private final Object lock_CRASHED;
      
-      public Failure(int n, Network net) {
+      public Failure(int n, Log log) {
+           this.N          = n; 
            prg             = new Random();
            crashed         = new ConcurrentLinkedQueue();
-           done            = new ConcurrentLinkedQueue();
+           completed            = new ConcurrentLinkedQueue();
            trustedImortals = new ConcurrentLinkedQueue();
-           N               = n; // Total number of agents
            waTime          = Integer.MAX_VALUE;
            scTime          = Integer.MAX_VALUE; // 2000;
            globalClock     = new Clock();
-           this.net        = net;
+           this.log        = log;
            
-           lock_TI         = new Object();
            lock_CRASHED    = new Object();
 
       }
@@ -46,11 +43,10 @@ public class Failure {
         synchronized (lock_CRASHED) {    
            if (crashed.contains(whoAmI)) return false;
         
-            synchronized (lock_TI) {
                if (!trustedImortals.contains(whoAmI)) {
                 if (prg.nextBoolean() && globalClock.getTime() > waTime) { 
                  trustedImortals.add(whoAmI);
-                 net.log.add("Agent " + whoAmI + " is now TI...");
+                 log.add("Agent " + whoAmI + " is now TI...");
                  return true;
                 }
                
@@ -58,25 +54,31 @@ public class Failure {
                    prg.nextBoolean() &&
                    crashed.size() < N/2) {
                    crashed.add(whoAmI);
-                   net.log.add("Agent " + whoAmI + " CRASHED...");
+                   log.add("Agent " + whoAmI + " CRASHED...");
                    return false;
                    }
                }
-            }
+            
         }
        return true;
       }
 
       public void IamDone(int whoAmI) {
-          if (!done.contains(whoAmI) &&
-              !crashed.contains(whoAmI)) done.add(whoAmI);
+          if (!completed.contains(whoAmI) &&
+              !crashed.contains(whoAmI)) completed.add(whoAmI);
       }
 
       public boolean amIdone(int whoAmI) {
-       return done.contains(whoAmI);
+       return completed.contains(whoAmI);
       }
       
-      // Agent who
+      /**
+       * The unreliable failure detector "diamond S".
+       * @param whoAmI Agent id of caller
+       * @param whoToSuspect Agent id of agent to suspect
+       * @return true when agent whoToSuspect is suspected to have crashed 
+       * and false otherwise
+       */
       public boolean fd_DS(int whoAmI, int whoToSuspect) {
           // Do not suspect yourself
           if (whoAmI == whoToSuspect) return false;
@@ -91,6 +93,11 @@ public class Failure {
           return prg.nextBoolean();
       }
 
+      /**
+       * A reliable failure detector
+       * @param p The agent to suspect
+       * @return true, when agent p has crashed and false otherwise
+       */
       public  boolean fd_P(int p) {
           synchronized (lock_CRASHED) {
            return crashed.contains(p);
@@ -103,7 +110,7 @@ public class Failure {
         
         return "Crashed: " + crashed.toString() + "\n" +
                "TI's:    " + trustedImortals.toString() + "\n" +
-               "Done:    " + done.toString();        
+               "Done:    " + completed.toString();        
       }
 
 
