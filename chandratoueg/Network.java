@@ -40,14 +40,9 @@ public class Network {
        inboxes[whoAmi][mType].clear();
    }
    
-   //public synchronized void delete(ArrayList<Message> msgs) {
-    /*Message m;
-    
-    for (int i = 0; i < msgs.size(); i++) {
-     m = msgs.get(i);
-     inboxes[m.destination].remove(m);    
-    }*/
-   //}
+   public synchronized void delete(Message m) {
+     inboxes[m.destination][m.msgType].remove(m);
+   }
 
     public  synchronized void deleteAll(int whoAmI) {
         for (int i = 0; i < Message.N_MSG_TYPES; i++)
