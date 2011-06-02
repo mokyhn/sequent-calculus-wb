@@ -37,8 +37,8 @@ public class RBListener extends Thread {
                     done.add(m);
                 }
 
-                if (l.state_p.equals("undecided")) {
-                    l.state_p = "decided";
+                if (l.state_p == LocalState.UNDECIDED) {
+                    l.state_p = LocalState.DECIDED;
                     l.decide = m.payload.estimate;
                     g.failure.IamDone(l.p);
                 }
