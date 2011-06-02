@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Log {
    private ConcurrentLinkedQueue<String> msgs;
-   boolean relayToScreen = false;
-   boolean logFlag       = false;
+   private boolean relayToScreen = false;
+   private boolean logFlag       = false;
    
    public Log() {
         msgs = new ConcurrentLinkedQueue<String>();

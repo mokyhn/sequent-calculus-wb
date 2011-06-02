@@ -1,7 +1,5 @@
 package chandratoueg;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  *
  * @author mku
@@ -19,7 +17,7 @@ public class LocalState {
     Clock   localClock;
 
     final static byte UNDECIDED = 0;
-    final static byte DECIDED      = 1;
+    final static byte DECIDED   = 1;
     
     public LocalState(int p) {
         this.p          = p;

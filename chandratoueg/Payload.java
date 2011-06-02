@@ -24,9 +24,7 @@ public class Payload implements Cloneable {
     
     @Override
     public Payload clone() {
-        Payload theClone = new Payload(this.round, this.estimate, this.ts);
-
-        return theClone;
+      return new Payload(this.round, this.estimate, this.ts);
     }
     
 }

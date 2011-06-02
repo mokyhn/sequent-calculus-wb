@@ -1,3 +1,4 @@
+
 package chandratoueg;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -5,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  *
  * @author mku
+ * 
  */
 public class Agent extends Thread {
     public  LocalState  l;
@@ -15,24 +17,18 @@ public class Agent extends Thread {
         this.l = new LocalState(p);
     }
     
-    // Update global and local time
-    private void tick() {
-        g.failure.globalClock.tick();
-        l.localClock.tick();
-    }
     
-    
-    public LocalState getLocalState() {
-        return l;
-    }
+    public LocalState getLocalState() { return l; }
 
     public void go() {
-        tick();
+        g.clock.tick();
+        l.localClock.tick();
         
         if (!g.failure.amIalive(l.p) ||
               g.failure.amIdone(l.p) ||
-             l.state_p == LocalState.DECIDED) 
+             l.state_p == LocalState.DECIDED) {
                this.stop();        
+        }
     }
 
     private void log(String s) {
@@ -67,7 +63,6 @@ public class Agent extends Thread {
        
         
         if (l.p == l.c_p) {
-            log("before...");
             while (!gotMessages) {
                 go();
                 msgs = new ConcurrentLinkedQueue<Message>();
@@ -75,11 +70,7 @@ public class Agent extends Thread {
                 if (countPhase1Msgs() >= (g.N + 1) / 2) {
                     gotMessages = true;
                 }
-                //System.out.print(l.p + " ");
-                //System.out.println(msgs);
             }
-
-            log("alive...");
             
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
@@ -90,8 +81,6 @@ public class Agent extends Thread {
                     log("Phase 2, updated estimate: " + m.toString());
                 }
             }
-
-            //g.net.deleteMsgOfType(l.p, Message.PHASE1);
             
             go();
 
@@ -124,7 +113,6 @@ public class Agent extends Thread {
                     l.ts_p = l.r_p;
                     mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, null);
                     g.net.snd(mSnd);
-                    //g.net.delete(m);
                     break;
                 }
             }
@@ -154,7 +142,7 @@ public class Agent extends Thread {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
                 l.state_p = LocalState.DECIDED;
                 l.decide = l.estimate_p;
-                g.failure.IamDone(l.p);
+                g.failure.ICompleted(l.p);
             }
         }
 
@@ -196,7 +184,6 @@ public class Agent extends Thread {
     @Override
     public void run() {
         chandraToueg();
-        //g.net.deleteAll(l.p); // Clear received messages.
         g.log.add("Agent " + l.p + " finished...");
     }
 }

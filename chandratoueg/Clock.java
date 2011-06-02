@@ -1,26 +1,23 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package chandratoueg;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  * @author mku
  */
 public class Clock {
- private int clock;
+ private AtomicLong clock;
 
  public Clock () {
-     clock = 0;
+     clock = new AtomicLong(0);
  }
 
- public synchronized void tick() {
-     clock = clock + 1;
+ public void tick() {
+     clock.incrementAndGet();
  }
 
- public synchronized int getTime() {
-   return clock;
+ public long getTime() {
+   return clock.get();
  }
 }
