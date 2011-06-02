@@ -26,20 +26,37 @@ public class Agent extends Thread {
         return l;
     }
 
-    public boolean go() {
+    public void go() {
         tick();
-        return g.failure.amIalive(l.p) && !g.failure.amIdone(l.p);
+        
+        if (!g.failure.amIalive(l.p) ||
+              g.failure.amIdone(l.p) ||
+             l.state_p == LocalState.DECIDED) 
+               this.stop();        
     }
 
     private void log(String s) {
      g.log.add(l.p + ": " + s);
     }
     
+    private int countPhase1Msgs() {
+      ConcurrentLinkedQueue msgs = g.net.rcv(l.p, Message.PHASE1);
+      Message m;
+      int c = 0;
+      
+      for (int i = 0; i < msgs.size(); i++) {
+        m = (Message) msgs.toArray()[i];
+        if (m.payload.round == l.r_p) c++;
+      }
+      return c;
+    }
+    
     public void Phase1() {
         Message m = new Message(l.p, l.c_p, Message.PHASE1, new Payload(l.r_p, l.estimate_p, l.ts_p));
         g.net.snd(m);
+        } 
         
-    }
+    
 
     public void Phase2() {
         boolean gotMessages = false;
@@ -47,21 +64,27 @@ public class Agent extends Thread {
         Message m;
         int t = Integer.MIN_VALUE;
         int i;
+       
         
         if (l.p == l.c_p) {
+            log("before...");
             while (!gotMessages) {
-                // TODO: should be with respect to certain round number
-                msgs = g.net.rcv(l.p, Message.PHASE1);
-                if (msgs.size() >= (g.N + 1) / 2) {
+                go();
+                msgs = new ConcurrentLinkedQueue<Message>();
+
+                if (countPhase1Msgs() >= (g.N + 1) / 2) {
                     gotMessages = true;
                 }
+                //System.out.print(l.p + " ");
+                //System.out.println(msgs);
             }
 
+            log("alive...");
+            
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
-                // TODO: should be with respect to certain round number
                 m = (Message) (msgs.toArray())[i];
-                if (m.payload.ts > t) {
+                if (m.payload.round == l.r_p &&  m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
                     t            = m.payload.ts;
                     log("Phase 2, updated estimate: " + m.toString());
@@ -70,6 +93,7 @@ public class Agent extends Thread {
 
             //g.net.deleteMsgOfType(l.p, Message.PHASE1);
             
+            go();
 
             // Send it to all
             for (i = 0; i < g.N; i++) {
@@ -89,8 +113,10 @@ public class Agent extends Thread {
          
 
         while (!gotAMessage && !g.failure.fd_DS(l.p, l.c_p)) {
+            go();
             msgs = g.net.rcv(l.p, Message.PHASE2);
             for (int i = 0; i < msgs.size(); i++) {
+                go();
                 m = (Message) (msgs.toArray())[i];
                 if (m.source == l.c_p) {
                     gotAMessage = true;
@@ -105,6 +131,8 @@ public class Agent extends Thread {
 
         }
 
+        go();
+        
         if (!gotAMessage) {
             mSnd = new Message(l.p, l.c_p, Message.PHASE3NACK, null);
             g.net.snd(mSnd);
@@ -118,11 +146,13 @@ public class Agent extends Thread {
 
             // Wait for replies   
             while (g.net.rcv(l.p, Message.PHASE3ACK).size() + g.net.rcv(l.p, Message.PHASE3NACK).size() < (g.N + 1) / 2 ) { // Busy wait  
+             go();
             }
 
+            
             if (g.net.rcv(l.p, Message.PHASE3ACK).size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
-                l.state_p = "decided";
+                l.state_p = LocalState.DECIDED;
                 l.decide = l.estimate_p;
                 g.failure.IamDone(l.p);
             }
@@ -138,25 +168,28 @@ public class Agent extends Thread {
 
 
     public void chandraToueg() {
-        while (l.state_p.equals("undecided") && go()) {
+        while (l.state_p == LocalState.UNDECIDED ) {
+            go();
             l.r_p = l.r_p + 1;
             l.c_p = (l.r_p % g.N);
 
-            tick(); // Time passes
-
-
-            if (go()) {
-                Phase1();
-            }
-            if (go()) {
-                Phase2();
-            }
-            if (go()) {
-                Phase3();
-            }
-            if (go()) {
-                Phase4();
-            }
+            log("phase1");
+            Phase1();
+            go();
+                
+            log("phase2");
+            Phase2();
+            
+            go();
+            
+            log("phase3");
+            Phase3();
+            
+            go();
+            
+            log("Phase4");
+            Phase4();
+            
         }
     }
 

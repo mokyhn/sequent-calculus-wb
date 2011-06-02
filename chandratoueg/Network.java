@@ -29,10 +29,11 @@ public class Network {
    }
 
    public synchronized void snd(Message m) {
-       //if (failure.fd_P(m.destination)) 
-       inboxes[m.destination][m.msgType].add(m);  
-       if (m.msgType != Message.PHASE4DECIDE)
-       log.add(m.toString());
+       if (!failure.fd_P(m.destination)) { 
+        inboxes[m.destination][m.msgType].add(m);  
+        //if (m.msgType != Message.PHASE4DECIDE)
+        log.add(m.toString());
+       }
    }
 
    public synchronized ConcurrentLinkedQueue<Message> rcv(int dest, byte msgType) {

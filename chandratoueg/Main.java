@@ -14,9 +14,12 @@ public class Main {
        
        int N = Integer.parseInt(args[0]);
        
+       System.out.println("N = " + N);
+       
+       
        GlobalState  g   = new GlobalState(N);
        g.log.disable();
-       g.log.relayToScreen(true);
+       g.log.relayToScreen(false);
        Agent agents[]        = new Agent[N];
        RBListener rblisten[] = new RBListener[N];
        
