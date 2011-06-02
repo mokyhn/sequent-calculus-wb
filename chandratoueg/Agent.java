@@ -1,6 +1,5 @@
 package chandratoueg;
 
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -62,14 +61,14 @@ public class Agent extends Thread {
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
                 m = (Message) (msgs.toArray())[i];
-                if (m.msgType == Message.PHASE1 && m.payload.ts > t) {
+                if (m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
                     t            = m.payload.ts;
                     log("Phase 2, updated estimate: " + m.toString());
                 }
             }
 
-            //g.net.delete(msgs);
+            //g.net.deleteMsgOfType(l.p, Message.PHASE1);
             
 
             // Send it to all
@@ -100,7 +99,7 @@ public class Agent extends Thread {
                     mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, null);
                     log("Phase3: " + mSnd.toString());
                     g.net.snd(mSnd);
-                    g.net.delete(m);
+                    //g.net.delete(m);
                     break;
                 }
             }
@@ -170,5 +169,7 @@ public class Agent extends Thread {
     @Override
     public void run() {
         chandraToueg();
+        //g.net.deleteAll(l.p); // Clear received messages.
+        g.log.add("Agent " + l.p + " finished...");
     }
 }

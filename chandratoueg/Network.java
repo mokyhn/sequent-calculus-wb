@@ -1,7 +1,5 @@
 package chandratoueg;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -14,15 +12,8 @@ public class Network {
    Failure failure;
    
    Log log;
-
-   Message m;
-   ArrayList<Message> res = new ArrayList();   
-   Iterator<Message> it;
-
    
    private ConcurrentLinkedQueue<Message>[][] inboxes;
-
-    
    
    public Network (int N, Log log) {
      int j;
@@ -32,11 +23,11 @@ public class Network {
      this.failure  = new Failure(N, this);
      this.inboxes  = new ConcurrentLinkedQueue[N][Message.N_MSG_TYPES];
      for (int i = 0; i < N; i++)
-       for (j = 0; j < m.N_MSG_TYPES; j++)
+       for (j = 0; j < Message.N_MSG_TYPES; j++)
          this.inboxes[i][j] = new ConcurrentLinkedQueue();
    }
 
-   public synchronized  void snd(Message m) {
+   public synchronized void snd(Message m) {
        inboxes[m.destination][m.msgType].add(m);  
    }
 
@@ -45,21 +36,22 @@ public class Network {
    }
 
 
-   public synchronized  void delete(Message m) {      
-          //inboxes[m.destination].remove(m);
+   public synchronized  void deleteMsgOfType(int whoAmi, byte mType) {      
+       inboxes[whoAmi][mType].clear();
    }
    
-   public synchronized void delete(ArrayList<Message> msgs) {
+   //public synchronized void delete(ArrayList<Message> msgs) {
     /*Message m;
     
     for (int i = 0; i < msgs.size(); i++) {
      m = msgs.get(i);
      inboxes[m.destination].remove(m);    
     }*/
-   }
+   //}
 
     public  synchronized void deleteAll(int whoAmI) {
-        //inboxes[whoAmI].clear();
+        for (int i = 0; i < Message.N_MSG_TYPES; i++)
+         inboxes[whoAmI][i].clear();
     }
   
        

@@ -17,6 +17,10 @@ public class Message implements Cloneable {
     static final byte PHASE3NACK   = 3;
     static final byte PHASE4DECIDE = 4;
     
+    static String msgTypeToString(byte mType) {
+     return "";
+    }
+    
 
     public Message(int source, int destination, int mt, Payload payload){
         this.source      = source;
