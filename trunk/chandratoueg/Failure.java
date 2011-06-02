@@ -9,31 +9,41 @@ import java.util.Random;
  */
 public class Failure {
      private int                    N;                // Total number of agents
-     private Random                 prg;
+     private Clock                  clock;           // Timing
+     private long                   waTime;          // Weak accuracy time
+     private long                   scTime;          // Strong completeness time
+
      private ConcurrentLinkedQueue  crashed;          // Agents that failed
      private ConcurrentLinkedQueue  completed;        // Agents that completed
      private ConcurrentLinkedQueue  trustedImortals;  // Trusted immortal agents
-
-     Log     log;
-     Clock   globalClock;
-
      
-     private long waTime;       // Weak accuracy time
-     private long scTime;       // Strong completeness time
+     private Random                 prg;
 
+     private Log                    log;              // For log messages
      
-     private final Object lock_CRASHED;
+     private final Object           lock_CRASHED;
      
-      public Failure(int n, Log log) {
-           this.N          = n; 
+     /**
+      * 
+      * @param N Number of agents
+      * @param clock The global clock
+      * @param waTime Weak Accuracy time - time after which the unreliable failure detector fd_DS obtains weak accuracy.
+      * @param scTime Strong Completeness time - time after which the unreliable failure detector fd_DS obtains the strong completeness property.
+      * @param log Object for logging of log messages
+      */
+      public Failure(int N, Clock clock, long waTime, long scTime, Log log) {
+           this.N           = N; 
+           this.clock       = clock;
+           this.waTime      = waTime;
+           this.scTime      = scTime;
+           this.log         = log;
+
            prg             = new Random();
            crashed         = new ConcurrentLinkedQueue();
-           completed            = new ConcurrentLinkedQueue();
+           completed       = new ConcurrentLinkedQueue();
            trustedImortals = new ConcurrentLinkedQueue();
            waTime          = Integer.MAX_VALUE;
-           scTime          = Integer.MAX_VALUE; // 2000;
-           globalClock     = new Clock();
-           this.log        = log;
+           scTime          = Integer.MAX_VALUE; 
            
            lock_CRASHED    = new Object();
 
@@ -44,7 +54,7 @@ public class Failure {
            if (crashed.contains(whoAmI)) return false;
         
                if (!trustedImortals.contains(whoAmI)) {
-                if (prg.nextBoolean() && globalClock.getTime() > waTime) { 
+                if (prg.nextBoolean() && clock.getTime() > waTime) { 
                  trustedImortals.add(whoAmI);
                  log.add("Agent " + whoAmI + " is now TI...");
                  return true;
@@ -63,7 +73,7 @@ public class Failure {
        return true;
       }
 
-      public void IamDone(int whoAmI) {
+      public void ICompleted(int whoAmI) {
           if (!completed.contains(whoAmI) &&
               !crashed.contains(whoAmI)) completed.add(whoAmI);
       }
@@ -80,17 +90,13 @@ public class Failure {
        * and false otherwise
        */
       public boolean fd_DS(int whoAmI, int whoToSuspect) {
-          // Do not suspect yourself
-          if (whoAmI == whoToSuspect) return false;
-
-          // Weak accuracy property
-          if (trustedImortals.contains(whoToSuspect)) return false;
-
-          // Strong completeness property
-          if (globalClock.getTime() >= scTime && crashed.contains(whoToSuspect)) return true;
-
-          // Non-deterministic behavior elsewise...
-          return prg.nextBoolean();
+          if (whoAmI == whoToSuspect) 
+              return false;                           // Do not suspect yourself
+          if (trustedImortals.contains(whoToSuspect)) // Weak accuracy property
+              return false;
+          if (clock.getTime() >= scTime && crashed.contains(whoToSuspect)) 
+              return true;                       // Strong completeness property
+          return prg.nextBoolean();             // Non-deterministic behavior...
       }
 
       /**
@@ -107,7 +113,6 @@ public class Failure {
       
     @Override
       public String toString() {
-        
         return "Crashed: " + crashed.toString() + "\n" +
                "TI's:    " + trustedImortals.toString() + "\n" +
                "Done:    " + completed.toString();        

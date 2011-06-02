@@ -4,25 +4,20 @@ package chandratoueg;
 public class Main {
 
    public static void main(String[] args) throws InterruptedException {
+       int N = 10;   // Total number of agents
        int p;
-       
-       
-       if (args.length == 0) {
-         System.out.println("Please supply a number of agents...");
-         System.exit(0);
-       }
-       
-       int N = Integer.parseInt(args[0]);
-       
-       System.out.println("N = " + N);
-       
-       
-       GlobalState  g   = new GlobalState(N);
-       g.log.disable();
-       g.log.relayToScreen(false);
+       long waTime = 30;
+       long scTime = 30;
+       GlobalState  g  = new GlobalState(N, waTime, scTime);
        Agent agents[]        = new Agent[N];
        RBListener rblisten[] = new RBListener[N];
+      
+
+       g.log.disable();
+       g.log.relayToScreen(true);
        
+    
+       System.out.println("N = " + N);
        
        for (p = 0; p < N; p++)
        {

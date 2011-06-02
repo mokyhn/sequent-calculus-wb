@@ -40,7 +40,7 @@ public class RBListener extends Thread {
                 if (l.state_p == LocalState.UNDECIDED) {
                     l.state_p = LocalState.DECIDED;
                     l.decide = m.payload.estimate;
-                    g.failure.IamDone(l.p);
+                    g.failure.ICompleted(l.p);
                 }
             }
             //g.net.delete(msgs); // Done with these packages

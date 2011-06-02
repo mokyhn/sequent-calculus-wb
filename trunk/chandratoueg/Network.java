@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author mku
  */
-
 public class Network {
    int N;
    Failure failure;
@@ -21,7 +20,7 @@ public class Network {
      this.N        = N;
      this.failure  = failure;
      this.log      = log;
-     this.failure  = new Failure(N, log);
+     this.failure  = failure;
      this.inboxes  = new ConcurrentLinkedQueue[N][Message.N_MSG_TYPES];
      for (int i = 0; i < N; i++)
        for (j = 0; j < Message.N_MSG_TYPES; j++)
@@ -39,20 +38,5 @@ public class Network {
    public synchronized ConcurrentLinkedQueue<Message> rcv(int dest, byte msgType) {
      return inboxes[dest][msgType];
    }
-
-
-   public synchronized  void deleteMsgOfType(int whoAmi, byte mType) {      
-       inboxes[whoAmi][mType].clear();
-   }
-   
-   public synchronized void delete(Message m) {
-     inboxes[m.destination][m.msgType].remove(m);
-   }
-
-    public  synchronized void deleteAll(int whoAmI) {
-        for (int i = 0; i < Message.N_MSG_TYPES; i++)
-         inboxes[whoAmI][i].clear();
-    }
-  
        
 }
