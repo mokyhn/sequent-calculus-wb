@@ -17,9 +17,8 @@ public class Payload implements Cloneable {
     
     @Override
     public String toString() {
-     return "round=" + round + 
-            " estimate=" + estimate +
-            " time stamp=" + ts;
+     return "value " + estimate + 
+             " in round "  + round + " and ts=" + ts;
     }
     
     

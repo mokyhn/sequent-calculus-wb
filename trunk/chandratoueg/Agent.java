@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author mku
  */
 public class Agent extends Thread {
-    public LocalState l;
+    public  LocalState  l;
     private GlobalState g;
 
     public Agent(int p, GlobalState g) {
@@ -37,8 +37,6 @@ public class Agent extends Thread {
     
     public void Phase1() {
         Message m = new Message(l.p, l.c_p, Message.PHASE1, new Payload(l.r_p, l.estimate_p, l.ts_p));
-        
-        log("Phase1 " + m.toString());
         g.net.snd(m);
         
     }
@@ -52,6 +50,7 @@ public class Agent extends Thread {
         
         if (l.p == l.c_p) {
             while (!gotMessages) {
+                // TODO: should be with respect to certain round number
                 msgs = g.net.rcv(l.p, Message.PHASE1);
                 if (msgs.size() >= (g.N + 1) / 2) {
                     gotMessages = true;
@@ -60,6 +59,7 @@ public class Agent extends Thread {
 
             // Find best estimate
             for (i = 0; i < msgs.size(); i++) {
+                // TODO: should be with respect to certain round number
                 m = (Message) (msgs.toArray())[i];
                 if (m.payload.ts > t) {
                     l.estimate_p = m.payload.estimate;
@@ -97,7 +97,6 @@ public class Agent extends Thread {
                     l.estimate_p = m.payload.estimate;
                     l.ts_p = l.r_p;
                     mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, null);
-                    log("Phase3: " + mSnd.toString());
                     g.net.snd(mSnd);
                     //g.net.delete(m);
                     break;
@@ -108,7 +107,6 @@ public class Agent extends Thread {
 
         if (!gotAMessage) {
             mSnd = new Message(l.p, l.c_p, Message.PHASE3NACK, null);
-            log("Phase3: " + mSnd.toString());
             g.net.snd(mSnd);
         }
 
@@ -124,7 +122,6 @@ public class Agent extends Thread {
 
             if (g.net.rcv(l.p, Message.PHASE3ACK).size() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
-                log("Phase 4: broadcast " + "r_p=" + l.r_p + " estimate=" + l.estimate_p);
                 l.state_p = "decided";
                 l.decide = l.estimate_p;
                 g.failure.IamDone(l.p);
@@ -139,9 +136,6 @@ public class Agent extends Thread {
         }
     }
 
-    public void pr(String text) {
-       return;
-    }
 
     public void chandraToueg() {
         while (l.state_p.equals("undecided") && go()) {

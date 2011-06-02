@@ -4,6 +4,9 @@ package chandratoueg;
 public class Main {
 
    public static void main(String[] args) throws InterruptedException {
+       int p;
+       
+       
        if (args.length == 0) {
          System.out.println("Please supply a number of agents...");
          System.exit(0);
@@ -11,24 +14,13 @@ public class Main {
        
        int N = Integer.parseInt(args[0]);
        
-       
        GlobalState  g   = new GlobalState(N);
-   
        g.log.disable();
-       g.log.relayToScreen(false);
-       
-       //System.out.println("(10+1)/2 = " + ((10+1)/2)); 
-       //if (1==1) return;
-       
-       //System.out.println(Integer.MAX_VALUE);
-       //if (1==1) return;
-       
-       // Agent a1 amd a2 are on the same net
+       g.log.relayToScreen(true);
        Agent agents[]        = new Agent[N];
        RBListener rblisten[] = new RBListener[N];
-       int p;
-       int j;
-
+       
+       
        for (p = 0; p < N; p++)
        {
          agents[p] = new Agent(p, g);
@@ -39,17 +31,17 @@ public class Main {
 
        
        
-       for (j = 0; j < N; j++)
-           agents[j].join();
+       for (p = 0; p < N; p++)
+           agents[p].join();
 
        System.out.println("----------------------------");
        System.out.println("\n");
 
        System.out.println(g.log.toString());
 
-       for (j = 0; j < N; j++) {
-           if (g.failure.amIdone(j))
-            System.out.println("Agent " + j + " decided " + agents[j].l.decide);
+       for (p = 0; p < N; p++) {
+           if (g.failure.amIdone(p))
+            System.out.println("Agent " + p + " decided " + agents[p].l.decide);
        }
        
        

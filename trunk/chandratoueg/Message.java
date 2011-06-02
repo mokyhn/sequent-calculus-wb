@@ -7,7 +7,7 @@ package chandratoueg;
 public class Message implements Cloneable {
     int     source;
     int     destination;
-    int     msgType;
+    byte    msgType;
     Payload payload;
 
     static final byte N_MSG_TYPES  = 5;
@@ -18,11 +18,20 @@ public class Message implements Cloneable {
     static final byte PHASE4DECIDE = 4;
     
     static String msgTypeToString(byte mType) {
-     return "";
+      String r = null;
+        switch (mType) {
+         case PHASE1:       r = "P1";       break;
+         case PHASE2:       r = "P2";       break;
+         case PHASE3ACK:    r = "P3ACK";    break;
+         case PHASE3NACK:   r = "P3NACK";   break;
+         case PHASE4DECIDE: r = "P4DECIDE"; break;    
+        }
+        
+        return r;
     }
     
 
-    public Message(int source, int destination, int mt, Payload payload){
+    public Message(int source, int destination, byte mt, Payload payload){
         this.source      = source;
         this.destination = destination;
         this.msgType     = mt;       
@@ -41,8 +50,7 @@ public class Message implements Cloneable {
       
       if (payload != null) p = payload.toString();
         
-        return "msgtype=" + msgType + 
-             ":" + source + " ---> " + destination +
-              " " + p;
+        return  source + " ----" +  msgTypeToString(msgType) +  "----> " + destination + " (" + p + ")"; 
+               
     }
 }
