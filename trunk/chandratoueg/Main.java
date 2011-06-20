@@ -2,53 +2,72 @@ package chandratoueg;
 
 
 public class Main {
-
-   public static void main(String[] args) throws InterruptedException {
-       int N = 10;   // Total number of agents
-       int p;
-       long waTime = 30;
-       long scTime = 30;
-       GlobalState  g  = new GlobalState(N, waTime, scTime);
-       Agent agents[]        = new Agent[N];
-       RBListener rblisten[] = new RBListener[N];
-      
-
-       g.log.disable();
-       g.log.relayToScreen(true);
+   static long  waTime;
+   static long  scTime;
+   static GlobalState  g;  
+   static Agent agents[];
+   static RBListener rblisten[];
+   
+   public static void doRun(int iter, int N, long waTime, long scTime) throws InterruptedException {
+     int p;
+     int decide = -1;
        
-    
-       System.out.println("N = " + N);
-       
-       for (p = 0; p < N; p++)
+     Main.waTime = waTime;
+     Main.scTime = scTime;
+     Main.g = new GlobalState(N, waTime, scTime);
+     agents        = new Agent[N];
+     rblisten = new RBListener[N];
+     
+     g.log.relayToScreen(false);
+
+     System.out.print("Iteration: " + iter + " Running N = " + N + ", waTime = " + waTime + " and scTime = " + scTime + "...");
+     
+     for (p = 0; p < N; p++)
        {
          agents[p] = new Agent(p, g);
          agents[p].start();
          rblisten[p] = new RBListener(g, agents[p].getLocalState());
          rblisten[p].start();
        }
-
+     
+     
        
-       
-       for (p = 0; p < N; p++)
+     for (p = 0; p < N; p++) {
            agents[p].join();
+      }
 
-       System.out.println("----------------------------");
-       System.out.println("\n");
+     // Check agreement
+       for (p = 0; p < N; p++)
+           if (g.failure.amIdone(p)) {
+             if (agents[p].l.decide < 0) {
+              System.out.println("An agent did not decide a value...");
+              System.out.println(g.log.toString());
+              System.out.println(g.failure.toString());
+             }
+               
+             if (decide == -1) {
+               decide = agents[p].l.decide;
+               continue;
+             }
+             
+             if (decide >= 0) {
+               if (agents[p].l.decide != decide) {
+                System.out.println("A disagreement occurred!");
+                System.out.println(g.log.toString());
+                System.out.println(g.failure.toString());
+               }
+             }
+           }
 
-       System.out.println(g.log.toString());
-
-       for (p = 0; p < N; p++) {
-           if (g.failure.amIdone(p))
-            System.out.println("Agent " + p + " decided " + agents[p].l.decide);
-       }
-       
-       
-       System.out.println(g.failure.toString());
-       
-       System.out.println();
-       
-       
-       // Add agreement check!
+      System.out.println(); 
+   }
+    
+    
+   public static void main(String[] args) throws InterruptedException {
+    int noRuns = 5;
+    
+    for (int i = 0; i < noRuns; i++)
+       doRun(i, 10, 10, 10);
        // Add staticstics information!
        
     }

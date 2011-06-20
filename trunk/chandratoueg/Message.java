@@ -31,6 +31,13 @@ public class Message implements Cloneable {
     }
     
 
+    /**
+     * 
+     * @param source Source agent
+     * @param destination Destination agent
+     * @param mt Message type
+     * @param payload Payload object
+     */
     public Message(int source, int destination, byte mt, Payload payload){
         this.source      = source;
         this.destination = destination;

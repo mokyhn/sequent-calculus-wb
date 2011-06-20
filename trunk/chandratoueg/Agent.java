@@ -20,7 +20,7 @@ public class Agent extends Thread {
     
     public LocalState getLocalState() { return l; }
 
-    public void go() {
+    private void go() {
         g.clock.tick();
         l.localClock.tick();
         
@@ -46,15 +46,54 @@ public class Agent extends Thread {
       }
       return c;
     }
+
+    private int countPhase4MsgsI() {
+      ConcurrentLinkedQueue msgsACK  = g.net.rcv(l.p, Message.PHASE3ACK);
+      ConcurrentLinkedQueue msgsNACK = g.net.rcv(l.p, Message.PHASE3NACK);
+      Message m;
+      int c = 0;
+      int i = 0;
+      
+      // Number of ACK's
+      for (i = 0; i < msgsACK.size(); i++) {
+        m = (Message) msgsACK.toArray()[i];
+        if (m.payload.round == l.r_p) c++;
+      }
+
+      // Number of NACK's
+      for (i = 0; i < msgsNACK.size(); i++) {
+        m = (Message) msgsNACK.toArray()[i];
+        if (m.payload.round == l.r_p) c++;
+      }
+      
+      
+      return c;
+    }
+
+    private int countPhase4MsgsII() {
+      ConcurrentLinkedQueue msgsACK  = g.net.rcv(l.p, Message.PHASE3ACK);
+      Message m;
+      int c = 0;
+      int i = 0;
+      
+      // Number of ACK's
+      for (i = 0; i < msgsACK.size(); i++) {
+        m = (Message) msgsACK.toArray()[i];
+        if (m.payload.round == l.r_p) c++;
+      }
+
+      return c;
+                
+    }
     
-    public void Phase1() {
+    private void Phase1() {
         Message m = new Message(l.p, l.c_p, Message.PHASE1, new Payload(l.r_p, l.estimate_p, l.ts_p));
         g.net.snd(m);
         } 
         
     
 
-    public void Phase2() {
+    private void Phase2() {
         boolean gotMessages = false;
         ConcurrentLinkedQueue<Message> msgs = new ConcurrentLinkedQueue<Message>();
         Message m;
@@ -94,7 +133,7 @@ public class Agent extends Thread {
     }
 
     // The if in the body of the while loop is never executed?!
-    public void Phase3() {
+    private void Phase3() {
         boolean gotAMessage = false;
         ConcurrentLinkedQueue<Message> msgs;
         Message m;
@@ -111,7 +150,7 @@ public class Agent extends Thread {
                     gotAMessage = true;
                     l.estimate_p = m.payload.estimate;
                     l.ts_p = l.r_p;
-                    mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, null);
+                    mSnd = new Message(l.p, l.c_p, Message.PHASE3ACK, new Payload(l.r_p, -1, -1));
                     g.net.snd(mSnd);
                     break;
                 }
@@ -122,23 +161,23 @@ public class Agent extends Thread {
         go();
         
         if (!gotAMessage) {
-            mSnd = new Message(l.p, l.c_p, Message.PHASE3NACK, null);
+            mSnd = new Message(l.p, l.c_p, Message.PHASE3NACK, new Payload(l.r_p, -1 , -1));
             g.net.snd(mSnd);
         }
 
 
     }
 
-    public void Phase4() {        
+    private void Phase4() {        
         if (l.p == l.c_p ) {
 
             // Wait for replies   
-            while (g.net.rcv(l.p, Message.PHASE3ACK).size() + g.net.rcv(l.p, Message.PHASE3NACK).size() < (g.N + 1) / 2 ) { // Busy wait  
+            while (countPhase4MsgsI() < (g.N + 1) / 2 ) { // Busy wait  
              go();
             }
 
             
-            if (g.net.rcv(l.p, Message.PHASE3ACK).size() >= (g.N + 1) / 2 ) {
+            if (countPhase4MsgsII() >= (g.N + 1) / 2 ) {
                 R_broadcast(l.p, l.r_p, l.estimate_p);
                 l.state_p = LocalState.DECIDED;
                 l.decide = l.estimate_p;
@@ -148,14 +187,14 @@ public class Agent extends Thread {
 
     }
 
-    public void R_broadcast(int p, int r, int estimate) {
+    private void R_broadcast(int p, int r, int estimate) {
         for (int i = 0; i < g.N; i++) {
             g.net.snd(new Message(p, i, Message.PHASE4DECIDE, new Payload(r, estimate, -2)));
         }
     }
 
 
-    public void chandraToueg() {
+    private void chandraToueg() {
         while (l.state_p == LocalState.UNDECIDED ) {
             go();
             l.r_p = l.r_p + 1;
