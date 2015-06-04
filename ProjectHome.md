@@ -1,0 +1,1 @@
+A workbench for sequent calculus in prolog
